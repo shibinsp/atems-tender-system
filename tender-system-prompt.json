@@ -1,0 +1,934 @@
+{
+  "project_name": "AI-Based Tender Evaluation & Management System (ATEMS)",
+  "version": "1.0.0",
+  "description": "A comprehensive government-grade tender management platform with AI-powered evaluation capabilities for automated tender processing, RFP generation, and bid evaluation based on L1/L2/T1 criteria",
+  
+  "tech_stack": {
+    "frontend": {
+      "framework": "React 18+",
+      "ui_library": "Tailwind CSS + shadcn/ui",
+      "state_management": "React Query + Zustand",
+      "routing": "React Router v6",
+      "form_handling": "React Hook Form + Zod validation",
+      "charts": "Recharts",
+      "pdf_handling": "react-pdf + pdf-lib",
+      "icons": "Lucide React",
+      "date_handling": "date-fns"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "orm": "SQLAlchemy 2.0",
+      "database": "SQLite",
+      "authentication": "JWT + OAuth2",
+      "pdf_processing": "PyPDF2 + pdfplumber",
+      "ai_integration": "OpenAI/Anthropic API for evaluation",
+      "file_storage": "Local filesystem with UUID naming",
+      "validation": "Pydantic v2"
+    }
+  },
+
+  "color_scheme": {
+    "primary": "#1e3a5f",
+    "primary_light": "#2c5282",
+    "secondary": "#c53030",
+    "accent": "#d69e2e",
+    "background": "#f7fafc",
+    "surface": "#ffffff",
+    "text_primary": "#1a202c",
+    "text_secondary": "#4a5568",
+    "success": "#38a169",
+    "warning": "#d69e2e",
+    "error": "#c53030",
+    "info": "#3182ce",
+    "border": "#e2e8f0"
+  },
+
+  "design_principles": {
+    "style": "Government/Enterprise Professional",
+    "characteristics": [
+      "Clean and minimal design with ample whitespace",
+      "Formal typography using Inter/Roboto fonts",
+      "Subtle shadows and rounded corners (4px-8px)",
+      "Consistent spacing using 8px grid system",
+      "Clear visual hierarchy with proper contrast",
+      "Accessible color combinations (WCAG 2.1 AA)",
+      "Professional iconography - no playful elements",
+      "Data tables with alternating row colors",
+      "Clear status indicators with color coding",
+      "Breadcrumb navigation for deep pages"
+    ]
+  },
+
+  "modules": {
+    "1_authentication": {
+      "features": [
+        "User registration with email verification",
+        "Multi-role login (Admin, Tender Officer, Evaluator, Bidder, Viewer)",
+        "Password reset functionality",
+        "Session management with JWT tokens",
+        "Audit trail for all login activities",
+        "Two-factor authentication (optional)"
+      ],
+      "pages": [
+        "Login Page",
+        "Registration Page",
+        "Forgot Password",
+        "Reset Password",
+        "Profile Management"
+      ]
+    },
+
+    "2_dashboard": {
+      "features": [
+        "Role-based dashboard views",
+        "Key metrics cards (Active Tenders, Pending Evaluations, Upcoming Deadlines)",
+        "Recent activity timeline",
+        "Quick action buttons",
+        "Notification center",
+        "Calendar view for deadlines",
+        "Status-wise tender distribution chart",
+        "Department-wise tender summary"
+      ],
+      "widgets": [
+        "TenderStatusPieChart",
+        "MonthlyTenderBarChart",
+        "UpcomingDeadlinesTable",
+        "RecentActivityFeed",
+        "QuickActionsPanel",
+        "NotificationBell"
+      ]
+    },
+
+    "3_tender_management": {
+      "features": [
+        "Create new tender with comprehensive form",
+        "Tender categories (Works, Goods, Services, Consultancy)",
+        "Multi-stage tender support (Single, Two-Stage, Three-Stage)",
+        "Tender document upload (PDF only)",
+        "Set eligibility criteria",
+        "Define evaluation parameters",
+        "Set timelines (Publishing, Bid Submission, Opening, Evaluation)",
+        "Tender amendment/corrigendum",
+        "Tender cancellation with reason",
+        "Clone existing tender",
+        "SAP integration hooks",
+        "eOffice/SLM integration for approvals"
+      ],
+      "tender_fields": {
+        "basic_info": [
+          "tender_id (auto-generated)",
+          "tender_title",
+          "tender_reference_number",
+          "tender_category",
+          "tender_type (Open/Limited/Single Source)",
+          "department",
+          "estimated_value",
+          "bid_validity_days",
+          "currency"
+        ],
+        "timeline": [
+          "publishing_date",
+          "document_download_start",
+          "document_download_end",
+          "bid_submission_start",
+          "bid_submission_deadline",
+          "technical_bid_opening_date",
+          "financial_bid_opening_date",
+          "contract_award_date"
+        ],
+        "eligibility": [
+          "minimum_turnover",
+          "years_of_experience",
+          "required_certifications",
+          "required_licenses",
+          "geographical_eligibility",
+          "msme_preference",
+          "startup_preference"
+        ],
+        "documents_required": [
+          "company_registration",
+          "pan_card",
+          "gst_certificate",
+          "bank_guarantee",
+          "earnest_money_deposit",
+          "previous_work_orders",
+          "financial_statements",
+          "technical_capability_docs",
+          "iso_certifications",
+          "other_certifications"
+        ]
+      }
+    },
+
+    "4_rfp_generation": {
+      "features": [
+        "AI-assisted RFP template generation",
+        "Pre-defined templates by category",
+        "Custom clause library",
+        "Standard terms and conditions",
+        "Scope of work builder",
+        "Deliverables definition",
+        "Payment milestone configuration",
+        "Penalty clause configuration",
+        "Version control for RFP documents",
+        "PDF export with official letterhead",
+        "Digital signature integration placeholder"
+      ],
+      "template_sections": [
+        "Introduction and Background",
+        "Scope of Work",
+        "Eligibility Criteria",
+        "Technical Requirements",
+        "Submission Guidelines",
+        "Evaluation Criteria",
+        "Terms and Conditions",
+        "Payment Terms",
+        "Annexures and Forms"
+      ]
+    },
+
+    "5_rfi_management": {
+      "features": [
+        "Request for Information submission by bidders",
+        "Categorization of RFIs",
+        "RFI response workflow",
+        "Bulk RFI response",
+        "RFI publication to all bidders",
+        "RFI deadline enforcement",
+        "Amendment generation from RFIs"
+      ],
+      "rules": [
+        "RFIs only accepted before specified deadline",
+        "All RFI responses visible to all registered bidders",
+        "No bidder identity disclosed in published RFIs",
+        "Auto-numbering of RFIs",
+        "Email notifications for RFI responses"
+      ]
+    },
+
+    "6_ebid_submission": {
+      "features": [
+        "Two-envelope system (Technical + Financial)",
+        "Three-envelope system (Pre-qualification + Technical + Financial)",
+        "PDF document upload with size limits",
+        "Document encryption at rest",
+        "EMD/Bid Security upload",
+        "Bank Guarantee document upload",
+        "Certificate uploads (ISO, Registration, etc.)",
+        "Bid submission confirmation receipt",
+        "Bid withdrawal before deadline",
+        "Bid modification before deadline",
+        "Late bid rejection",
+        "Bid hash generation for integrity"
+      ],
+      "document_rules": {
+        "allowed_formats": ["PDF"],
+        "max_file_size_mb": 25,
+        "mandatory_documents": [
+          "technical_proposal",
+          "financial_proposal",
+          "company_registration",
+          "authorization_letter"
+        ],
+        "validation": [
+          "PDF format verification",
+          "File size check",
+          "Malware scan placeholder",
+          "Completeness check"
+        ]
+      }
+    },
+
+    "7_bid_evaluation": {
+      "ai_evaluation": {
+        "features": [
+          "Automated document extraction",
+          "AI-powered eligibility verification",
+          "Technical parameter scoring",
+          "Compliance checking",
+          "Risk flagging",
+          "Comparative analysis generation",
+          "Evaluation report generation"
+        ],
+        "evaluation_types": {
+          "L1_evaluation": {
+            "description": "Lowest Cost/Price Based",
+            "criteria": [
+              "Technical qualification (Pass/Fail)",
+              "Lowest quoted price wins",
+              "Price normalization for comparison",
+              "Conditional discounts handling"
+            ]
+          },
+          "L2_evaluation": {
+            "description": "Second Lowest Price",
+            "use_case": "When L1 bidder fails to comply or withdraws"
+          },
+          "T1_evaluation": {
+            "description": "Highest Technical Score",
+            "criteria": [
+              "Weighted technical parameters",
+              "Experience scoring",
+              "Capability assessment",
+              "Past performance evaluation",
+              "Resource availability"
+            ]
+          },
+          "QCBS": {
+            "description": "Quality and Cost Based Selection",
+            "formula": "Combined Score = (Technical Score × Technical Weight) + (Financial Score × Financial Weight)",
+            "typical_weights": {
+              "technical": "70-80%",
+              "financial": "20-30%"
+            }
+          }
+        }
+      },
+      "manual_evaluation": {
+        "features": [
+          "Evaluation committee assignment",
+          "Individual evaluator scoring",
+          "Consolidated score calculation",
+          "Evaluation remarks",
+          "Document verification checklist",
+          "Physical verification notes",
+          "Evaluation meeting minutes upload"
+        ]
+      },
+      "evaluation_workflow": [
+        "Preliminary examination (responsiveness check)",
+        "Eligibility verification",
+        "Technical evaluation",
+        "Technical bid opening committee",
+        "Financial bid opening (for qualified bidders)",
+        "Financial evaluation",
+        "Combined evaluation (for QCBS)",
+        "Ranking and recommendation",
+        "Approval workflow",
+        "Result publication"
+      ]
+    },
+
+    "8_result_management": {
+      "features": [
+        "Comparative statement generation",
+        "Winner declaration",
+        "Result publication",
+        "Unsuccessful bidder notification",
+        "Grievance/Appeal window",
+        "Letter of Intent generation",
+        "Work order generation",
+        "Contract document preparation"
+      ]
+    },
+
+    "9_reports_analytics": {
+      "reports": [
+        "Tender Status Report",
+        "Bid Submission Summary",
+        "Evaluation Summary Report",
+        "Comparative Statement",
+        "Department-wise Analysis",
+        "Category-wise Analysis",
+        "Time Analysis (Average processing time)",
+        "Savings Report (Estimated vs Awarded)",
+        "Vendor Performance Report",
+        "Audit Trail Report"
+      ],
+      "export_formats": ["PDF", "Excel", "CSV"]
+    },
+
+    "10_admin_settings": {
+      "features": [
+        "User management",
+        "Role and permission management",
+        "Department management",
+        "Category management",
+        "Template management",
+        "Clause library management",
+        "System configuration",
+        "Email template configuration",
+        "Notification settings",
+        "Audit log viewer",
+        "Backup management"
+      ]
+    }
+  },
+
+  "database_schema": {
+    "users": {
+      "id": "INTEGER PRIMARY KEY",
+      "email": "VARCHAR(255) UNIQUE NOT NULL",
+      "password_hash": "VARCHAR(255) NOT NULL",
+      "full_name": "VARCHAR(255) NOT NULL",
+      "phone": "VARCHAR(20)",
+      "role": "VARCHAR(50) NOT NULL",
+      "department_id": "INTEGER FOREIGN KEY",
+      "is_active": "BOOLEAN DEFAULT TRUE",
+      "is_verified": "BOOLEAN DEFAULT FALSE",
+      "created_at": "DATETIME",
+      "updated_at": "DATETIME",
+      "last_login": "DATETIME"
+    },
+    "departments": {
+      "id": "INTEGER PRIMARY KEY",
+      "name": "VARCHAR(255) NOT NULL",
+      "code": "VARCHAR(50) UNIQUE",
+      "parent_id": "INTEGER FOREIGN KEY SELF",
+      "is_active": "BOOLEAN DEFAULT TRUE"
+    },
+    "tenders": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "VARCHAR(50) UNIQUE NOT NULL",
+      "reference_number": "VARCHAR(100)",
+      "title": "VARCHAR(500) NOT NULL",
+      "description": "TEXT",
+      "category_id": "INTEGER FOREIGN KEY",
+      "department_id": "INTEGER FOREIGN KEY",
+      "tender_type": "VARCHAR(50)",
+      "tender_stage": "VARCHAR(50)",
+      "estimated_value": "DECIMAL(18,2)",
+      "currency": "VARCHAR(10) DEFAULT 'INR'",
+      "bid_validity_days": "INTEGER",
+      "emd_amount": "DECIMAL(18,2)",
+      "emd_type": "VARCHAR(50)",
+      "status": "VARCHAR(50) DEFAULT 'Draft'",
+      "publishing_date": "DATETIME",
+      "submission_start": "DATETIME",
+      "submission_deadline": "DATETIME",
+      "technical_opening_date": "DATETIME",
+      "financial_opening_date": "DATETIME",
+      "created_by": "INTEGER FOREIGN KEY users",
+      "created_at": "DATETIME",
+      "updated_at": "DATETIME"
+    },
+    "tender_eligibility": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "criteria_type": "VARCHAR(100)",
+      "criteria_value": "TEXT",
+      "is_mandatory": "BOOLEAN DEFAULT TRUE"
+    },
+    "tender_documents": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "document_type": "VARCHAR(100)",
+      "file_name": "VARCHAR(255)",
+      "file_path": "VARCHAR(500)",
+      "file_size": "INTEGER",
+      "uploaded_by": "INTEGER FOREIGN KEY users",
+      "uploaded_at": "DATETIME"
+    },
+    "evaluation_criteria": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "criteria_name": "VARCHAR(255)",
+      "criteria_type": "VARCHAR(50)",
+      "max_score": "DECIMAL(5,2)",
+      "weight": "DECIMAL(5,2)",
+      "is_mandatory": "BOOLEAN",
+      "parent_id": "INTEGER FOREIGN KEY SELF",
+      "sort_order": "INTEGER"
+    },
+    "bidders": {
+      "id": "INTEGER PRIMARY KEY",
+      "user_id": "INTEGER FOREIGN KEY users",
+      "company_name": "VARCHAR(255) NOT NULL",
+      "registration_number": "VARCHAR(100)",
+      "pan_number": "VARCHAR(20)",
+      "gst_number": "VARCHAR(20)",
+      "address": "TEXT",
+      "city": "VARCHAR(100)",
+      "state": "VARCHAR(100)",
+      "country": "VARCHAR(100)",
+      "pincode": "VARCHAR(20)",
+      "website": "VARCHAR(255)",
+      "established_year": "INTEGER",
+      "annual_turnover": "DECIMAL(18,2)",
+      "employee_count": "INTEGER",
+      "is_msme": "BOOLEAN DEFAULT FALSE",
+      "is_startup": "BOOLEAN DEFAULT FALSE",
+      "is_verified": "BOOLEAN DEFAULT FALSE"
+    },
+    "bids": {
+      "id": "INTEGER PRIMARY KEY",
+      "bid_number": "VARCHAR(50) UNIQUE",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "bidder_id": "INTEGER FOREIGN KEY",
+      "status": "VARCHAR(50) DEFAULT 'Submitted'",
+      "submission_date": "DATETIME",
+      "technical_score": "DECIMAL(5,2)",
+      "financial_amount": "DECIMAL(18,2)",
+      "financial_score": "DECIMAL(5,2)",
+      "combined_score": "DECIMAL(5,2)",
+      "rank": "INTEGER",
+      "is_responsive": "BOOLEAN",
+      "is_qualified": "BOOLEAN",
+      "remarks": "TEXT",
+      "bid_hash": "VARCHAR(255)"
+    },
+    "bid_documents": {
+      "id": "INTEGER PRIMARY KEY",
+      "bid_id": "INTEGER FOREIGN KEY",
+      "document_type": "VARCHAR(100)",
+      "document_category": "VARCHAR(50)",
+      "file_name": "VARCHAR(255)",
+      "file_path": "VARCHAR(500)",
+      "file_size": "INTEGER",
+      "is_verified": "BOOLEAN DEFAULT FALSE",
+      "verification_remarks": "TEXT",
+      "uploaded_at": "DATETIME"
+    },
+    "bank_guarantees": {
+      "id": "INTEGER PRIMARY KEY",
+      "bid_id": "INTEGER FOREIGN KEY",
+      "bg_number": "VARCHAR(100)",
+      "bg_type": "VARCHAR(50)",
+      "bank_name": "VARCHAR(255)",
+      "branch_name": "VARCHAR(255)",
+      "amount": "DECIMAL(18,2)",
+      "issue_date": "DATE",
+      "expiry_date": "DATE",
+      "document_path": "VARCHAR(500)",
+      "status": "VARCHAR(50) DEFAULT 'Active'",
+      "verified_by": "INTEGER FOREIGN KEY users",
+      "verified_at": "DATETIME"
+    },
+    "rfis": {
+      "id": "INTEGER PRIMARY KEY",
+      "rfi_number": "VARCHAR(50)",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "bidder_id": "INTEGER FOREIGN KEY",
+      "subject": "VARCHAR(255)",
+      "question": "TEXT",
+      "response": "TEXT",
+      "status": "VARCHAR(50) DEFAULT 'Pending'",
+      "submitted_at": "DATETIME",
+      "responded_at": "DATETIME",
+      "responded_by": "INTEGER FOREIGN KEY users"
+    },
+    "evaluations": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "bid_id": "INTEGER FOREIGN KEY",
+      "evaluator_id": "INTEGER FOREIGN KEY users",
+      "criteria_id": "INTEGER FOREIGN KEY",
+      "score": "DECIMAL(5,2)",
+      "remarks": "TEXT",
+      "evaluated_at": "DATETIME"
+    },
+    "evaluation_committee": {
+      "id": "INTEGER PRIMARY KEY",
+      "tender_id": "INTEGER FOREIGN KEY",
+      "user_id": "INTEGER FOREIGN KEY users",
+      "role": "VARCHAR(50)",
+      "is_active": "BOOLEAN DEFAULT TRUE"
+    },
+    "audit_logs": {
+      "id": "INTEGER PRIMARY KEY",
+      "user_id": "INTEGER FOREIGN KEY users",
+      "action": "VARCHAR(100)",
+      "entity_type": "VARCHAR(100)",
+      "entity_id": "INTEGER",
+      "old_values": "TEXT",
+      "new_values": "TEXT",
+      "ip_address": "VARCHAR(50)",
+      "user_agent": "TEXT",
+      "created_at": "DATETIME"
+    },
+    "notifications": {
+      "id": "INTEGER PRIMARY KEY",
+      "user_id": "INTEGER FOREIGN KEY users",
+      "title": "VARCHAR(255)",
+      "message": "TEXT",
+      "type": "VARCHAR(50)",
+      "is_read": "BOOLEAN DEFAULT FALSE",
+      "created_at": "DATETIME"
+    },
+    "rfp_templates": {
+      "id": "INTEGER PRIMARY KEY",
+      "name": "VARCHAR(255)",
+      "category_id": "INTEGER FOREIGN KEY",
+      "content": "TEXT",
+      "is_active": "BOOLEAN DEFAULT TRUE",
+      "created_by": "INTEGER FOREIGN KEY users",
+      "created_at": "DATETIME"
+    },
+    "clause_library": {
+      "id": "INTEGER PRIMARY KEY",
+      "title": "VARCHAR(255)",
+      "category": "VARCHAR(100)",
+      "content": "TEXT",
+      "is_mandatory": "BOOLEAN DEFAULT FALSE",
+      "is_active": "BOOLEAN DEFAULT TRUE"
+    }
+  },
+
+  "api_endpoints": {
+    "authentication": [
+      "POST /api/auth/register",
+      "POST /api/auth/login",
+      "POST /api/auth/logout",
+      "POST /api/auth/refresh-token",
+      "POST /api/auth/forgot-password",
+      "POST /api/auth/reset-password",
+      "GET /api/auth/profile",
+      "PUT /api/auth/profile"
+    ],
+    "tenders": [
+      "GET /api/tenders",
+      "GET /api/tenders/{id}",
+      "POST /api/tenders",
+      "PUT /api/tenders/{id}",
+      "DELETE /api/tenders/{id}",
+      "POST /api/tenders/{id}/publish",
+      "POST /api/tenders/{id}/cancel",
+      "POST /api/tenders/{id}/clone",
+      "GET /api/tenders/{id}/documents",
+      "POST /api/tenders/{id}/documents",
+      "DELETE /api/tenders/{id}/documents/{doc_id}",
+      "GET /api/tenders/{id}/eligibility",
+      "POST /api/tenders/{id}/eligibility",
+      "GET /api/tenders/{id}/evaluation-criteria",
+      "POST /api/tenders/{id}/evaluation-criteria"
+    ],
+    "rfp": [
+      "GET /api/rfp/templates",
+      "GET /api/rfp/templates/{id}",
+      "POST /api/rfp/templates",
+      "PUT /api/rfp/templates/{id}",
+      "POST /api/rfp/generate/{tender_id}",
+      "GET /api/rfp/clauses",
+      "POST /api/rfp/clauses"
+    ],
+    "rfi": [
+      "GET /api/tenders/{tender_id}/rfis",
+      "GET /api/rfis/{id}",
+      "POST /api/tenders/{tender_id}/rfis",
+      "PUT /api/rfis/{id}/respond",
+      "GET /api/rfis/my-rfis"
+    ],
+    "bids": [
+      "GET /api/tenders/{tender_id}/bids",
+      "GET /api/bids/{id}",
+      "POST /api/tenders/{tender_id}/bids",
+      "PUT /api/bids/{id}",
+      "POST /api/bids/{id}/submit",
+      "POST /api/bids/{id}/withdraw",
+      "GET /api/bids/{id}/documents",
+      "POST /api/bids/{id}/documents",
+      "POST /api/bids/{id}/bank-guarantee",
+      "GET /api/bids/my-bids"
+    ],
+    "evaluation": [
+      "GET /api/tenders/{tender_id}/evaluation",
+      "POST /api/tenders/{tender_id}/evaluation/start",
+      "POST /api/bids/{bid_id}/evaluate",
+      "GET /api/bids/{bid_id}/scores",
+      "POST /api/tenders/{tender_id}/evaluation/complete",
+      "POST /api/tenders/{tender_id}/evaluation/ai-evaluate",
+      "GET /api/tenders/{tender_id}/comparative-statement",
+      "POST /api/tenders/{tender_id}/declare-winner"
+    ],
+    "reports": [
+      "GET /api/reports/tender-status",
+      "GET /api/reports/bid-summary",
+      "GET /api/reports/evaluation-summary",
+      "GET /api/reports/department-analysis",
+      "GET /api/reports/savings-analysis",
+      "GET /api/reports/audit-trail"
+    ],
+    "admin": [
+      "GET /api/admin/users",
+      "POST /api/admin/users",
+      "PUT /api/admin/users/{id}",
+      "DELETE /api/admin/users/{id}",
+      "GET /api/admin/departments",
+      "POST /api/admin/departments",
+      "GET /api/admin/categories",
+      "POST /api/admin/categories",
+      "GET /api/admin/audit-logs",
+      "GET /api/admin/system-config",
+      "PUT /api/admin/system-config"
+    ]
+  },
+
+  "ui_components": {
+    "layout": {
+      "header": {
+        "elements": [
+          "Government Logo (left)",
+          "Application Title",
+          "Notification Bell",
+          "User Profile Dropdown",
+          "Logout Button"
+        ],
+        "style": "Fixed header with subtle shadow, white background"
+      },
+      "sidebar": {
+        "elements": [
+          "Collapsible navigation menu",
+          "Role-based menu items",
+          "Active state indication",
+          "Icon + Text format"
+        ],
+        "style": "Dark sidebar (#1e3a5f), white text, hover states"
+      },
+      "main_content": {
+        "elements": [
+          "Breadcrumb navigation",
+          "Page title with actions",
+          "Content area",
+          "Pagination where needed"
+        ],
+        "style": "Light gray background (#f7fafc), white content cards"
+      },
+      "footer": {
+        "elements": [
+          "Copyright notice",
+          "Version number",
+          "Support links"
+        ],
+        "style": "Minimal footer, dark text on light background"
+      }
+    },
+    "common_components": [
+      "DataTable with sorting, filtering, pagination",
+      "Modal/Dialog for forms and confirmations",
+      "Toast notifications for feedback",
+      "Loading spinners and skeletons",
+      "Empty state illustrations",
+      "Status badges with colors",
+      "Timeline component for activities",
+      "File upload with drag-and-drop",
+      "Date range picker",
+      "Multi-select dropdown",
+      "Rich text editor for descriptions",
+      "PDF viewer component",
+      "Stepper for multi-step forms",
+      "Confirmation dialogs for critical actions"
+    ],
+    "form_patterns": {
+      "validation": "Real-time validation with error messages",
+      "required_fields": "Red asterisk indicator",
+      "help_text": "Subtle gray text below fields",
+      "error_state": "Red border and error message",
+      "success_state": "Green checkmark on valid input"
+    }
+  },
+
+  "security_requirements": [
+    "JWT-based authentication with refresh tokens",
+    "Password hashing using bcrypt",
+    "Role-based access control (RBAC)",
+    "API rate limiting",
+    "Input validation and sanitization",
+    "SQL injection prevention via ORM",
+    "XSS protection",
+    "CORS configuration",
+    "File upload validation (type, size, content)",
+    "Audit logging for all actions",
+    "Session timeout after inactivity",
+    "Secure headers (CSP, HSTS, etc.)"
+  ],
+
+  "folder_structure": {
+    "frontend": {
+      "src": {
+        "components": {
+          "common": ["Button", "Input", "Modal", "DataTable", "StatusBadge", "FileUpload", "PDFViewer"],
+          "layout": ["Header", "Sidebar", "Footer", "Breadcrumb", "PageTitle"],
+          "dashboard": ["StatsCard", "TenderChart", "ActivityFeed", "DeadlineWidget"],
+          "tender": ["TenderForm", "TenderCard", "TenderDetails", "EligibilityForm", "DocumentList"],
+          "bid": ["BidForm", "BidDocuments", "BankGuaranteeForm", "BidStatus"],
+          "evaluation": ["EvaluationForm", "ScoreCard", "ComparativeTable", "AIEvaluation"],
+          "rfp": ["RFPBuilder", "ClauseLibrary", "TemplateEditor", "RFPPreview"],
+          "rfi": ["RFIForm", "RFIList", "RFIResponse"]
+        },
+        "pages": {
+          "auth": ["Login", "Register", "ForgotPassword", "ResetPassword"],
+          "dashboard": ["Dashboard"],
+          "tenders": ["TenderList", "TenderCreate", "TenderEdit", "TenderDetails"],
+          "bids": ["MyBids", "BidSubmission", "BidDetails"],
+          "evaluation": ["EvaluationList", "EvaluationDetails", "ComparativeStatement"],
+          "rfp": ["RFPTemplates", "RFPGenerate"],
+          "rfi": ["RFIList", "RFIDetails"],
+          "reports": ["Reports", "ReportDetails"],
+          "admin": ["Users", "Departments", "Categories", "Settings", "AuditLogs"]
+        },
+        "hooks": ["useAuth", "useTenders", "useBids", "useEvaluation", "useNotifications"],
+        "services": ["api", "auth", "tender", "bid", "evaluation", "rfp", "rfi"],
+        "store": ["authStore", "tenderStore", "uiStore"],
+        "utils": ["formatters", "validators", "constants", "helpers"],
+        "types": ["index.ts - TypeScript interfaces"]
+      }
+    },
+    "backend": {
+      "app": {
+        "api": {
+          "v1": {
+            "endpoints": ["auth", "tenders", "bids", "evaluation", "rfp", "rfi", "reports", "admin"]
+          }
+        },
+        "core": ["config", "security", "database"],
+        "models": ["user", "tender", "bid", "evaluation", "rfp", "rfi"],
+        "schemas": ["user", "tender", "bid", "evaluation", "rfp", "rfi"],
+        "services": ["auth_service", "tender_service", "bid_service", "evaluation_service", "ai_service", "pdf_service", "notification_service"],
+        "utils": ["helpers", "validators", "file_handler"]
+      },
+      "uploads": "Directory for uploaded files",
+      "templates": "Email and document templates"
+    }
+  },
+
+  "ai_evaluation_logic": {
+    "document_extraction": {
+      "steps": [
+        "Extract text from uploaded PDFs",
+        "Identify key sections (Company Info, Technical Proposal, Financial Details)",
+        "Extract structured data (turnover, experience years, certifications)",
+        "Validate extracted data against eligibility criteria"
+      ]
+    },
+    "eligibility_check": {
+      "automated_checks": [
+        "Minimum turnover verification",
+        "Years of experience validation",
+        "Required certifications presence",
+        "EMD/Bank Guarantee validity",
+        "Document completeness check"
+      ]
+    },
+    "technical_scoring": {
+      "approach": [
+        "Parse technical proposal content",
+        "Score against defined criteria",
+        "Weight scores as per configuration",
+        "Flag areas of concern",
+        "Generate scoring rationale"
+      ]
+    },
+    "financial_evaluation": {
+      "L1_process": [
+        "Extract quoted prices from financial bids",
+        "Normalize prices (apply loading/unloading for taxes, etc.)",
+        "Rank bidders by price (lowest first)",
+        "Mark L1, L2, L3 bidders"
+      ]
+    },
+    "report_generation": {
+      "outputs": [
+        "Individual bid evaluation summary",
+        "Comparative analysis matrix",
+        "Recommendation with rationale",
+        "Risk assessment summary"
+      ]
+    }
+  },
+
+  "sample_data": {
+    "roles": ["Super Admin", "Tender Officer", "Evaluator", "Bidder", "Viewer"],
+    "tender_categories": ["Civil Works", "Electrical Works", "IT Services", "Consultancy", "Goods Procurement", "Maintenance Services"],
+    "tender_types": ["Open Tender", "Limited Tender", "Single Source", "Two-Stage", "Expression of Interest"],
+    "tender_statuses": ["Draft", "Published", "Under Evaluation", "Evaluated", "Awarded", "Cancelled", "Closed"],
+    "bid_statuses": ["Draft", "Submitted", "Under Review", "Qualified", "Disqualified", "Shortlisted", "Awarded", "Rejected"],
+    "document_types": ["Technical Proposal", "Financial Proposal", "Company Registration", "PAN Card", "GST Certificate", "Bank Guarantee", "EMD Receipt", "ISO Certificate", "Previous Work Orders", "Financial Statements"]
+  },
+
+  "development_phases": {
+    "phase_1": {
+      "name": "Foundation",
+      "tasks": [
+        "Project setup (Frontend + Backend)",
+        "Database schema implementation",
+        "Authentication system",
+        "Basic UI layout and navigation",
+        "User management"
+      ]
+    },
+    "phase_2": {
+      "name": "Core Tender Management",
+      "tasks": [
+        "Tender CRUD operations",
+        "Document upload/management",
+        "Eligibility criteria configuration",
+        "Tender publishing workflow",
+        "Dashboard implementation"
+      ]
+    },
+    "phase_3": {
+      "name": "Bidding System",
+      "tasks": [
+        "Bidder registration",
+        "Bid submission with documents",
+        "Bank guarantee management",
+        "RFI system",
+        "Bid withdrawal/modification"
+      ]
+    },
+    "phase_4": {
+      "name": "Evaluation System",
+      "tasks": [
+        "Manual evaluation workflow",
+        "Scoring system",
+        "Comparative statement",
+        "Result declaration",
+        "Basic reports"
+      ]
+    },
+    "phase_5": {
+      "name": "AI Integration & Advanced Features",
+      "tasks": [
+        "AI-powered document extraction",
+        "Automated eligibility verification",
+        "AI-assisted evaluation",
+        "RFP generation with AI",
+        "Advanced analytics and reports"
+      ]
+    }
+  },
+
+  "instructions_for_claude_code": {
+    "general": [
+      "Create a production-ready application with clean, maintainable code",
+      "Follow REST API best practices",
+      "Implement proper error handling throughout",
+      "Add comprehensive input validation",
+      "Include loading states and error states in UI",
+      "Make the UI responsive for desktop and tablet",
+      "Add proper TypeScript types for all components",
+      "Include comments for complex logic",
+      "Follow the color scheme strictly for government look"
+    ],
+    "frontend_specific": [
+      "Use functional components with hooks",
+      "Implement proper form validation with react-hook-form",
+      "Add loading spinners for async operations",
+      "Implement toast notifications for user feedback",
+      "Create reusable component library",
+      "Use proper TypeScript interfaces",
+      "Implement protected routes",
+      "Add breadcrumb navigation"
+    ],
+    "backend_specific": [
+      "Use Pydantic v2 for request/response validation",
+      "Implement proper exception handling",
+      "Add request logging",
+      "Implement pagination for list endpoints",
+      "Add proper CORS configuration",
+      "Create database migrations",
+      "Add API documentation with Swagger",
+      "Implement file upload with validation"
+    ],
+    "priority_order": [
+      "1. Set up project structure",
+      "2. Implement authentication",
+      "3. Create dashboard layout",
+      "4. Implement tender management",
+      "5. Add bid submission",
+      "6. Build evaluation system",
+      "7. Add AI features",
+      "8. Create reports"
+    ]
+  }
+}
