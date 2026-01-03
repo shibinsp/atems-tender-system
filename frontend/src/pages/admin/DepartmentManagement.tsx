@@ -1,256 +1,30 @@
-import React, { useState } from 'react';
-import {
-  Building2,
-  Tag,
-  Plus,
-  Edit,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  X,
-  Save
-} from 'lucide-react';
+import React from 'react';
+import { Building2, Plus, Edit, Trash2, MoreVertical } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { Card, CardContent } from '../../components/ui/Card';
+import PageHeader from '../../components/ui/PageHeader';
 import Loading from '../../components/ui/Loading';
-import Breadcrumb from '../../components/layout/Breadcrumb';
 import { useUIStore } from '../../store/uiStore';
 import adminService from '../../services/adminService';
-import { colors, shadows } from '../../styles/constants';
-import type { Department, Category, DepartmentCreate, CategoryCreate } from '../../types';
-
-// Tab button with inline styles
-const TabButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}> = ({ active, onClick, icon, label }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors"
-    style={{
-      backgroundColor: active ? colors.primary : '#f3f4f6',
-      color: active ? 'white' : '#374151',
-    }}
-  >
-    {icon}
-    {label}
-  </button>
-);
-
-// Textarea with focus styles
-const FocusTextarea: React.FC<{
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  placeholder?: string;
-  rows?: number;
-}> = ({ value, onChange, placeholder, rows = 3 }) => {
-  const [isFocused, setIsFocused] = useState(false);
-
-  return (
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      rows={rows}
-      onFocus={() => setIsFocused(true)}
-      onBlur={() => setIsFocused(false)}
-      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-      style={isFocused ? {
-        outline: 'none',
-        boxShadow: `0 0 0 2px ${colors.primary}`,
-        borderColor: colors.primary,
-      } : {}}
-    />
-  );
-};
-
-// Checkbox with custom styling
-const FocusCheckbox: React.FC<{
-  checked: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ checked, onChange }) => (
-  <input
-    type="checkbox"
-    checked={checked}
-    onChange={onChange}
-    className="rounded border-gray-300"
-    style={{ accentColor: colors.primary }}
-  />
-);
-
-type TabType = 'departments' | 'categories';
-
-interface FormModalProps {
-  type: 'department' | 'category';
-  item: Department | Category | null;
-  onClose: () => void;
-  onSaved: () => void;
-}
-
-const FormModal: React.FC<FormModalProps> = ({ type, item, onClose, onSaved }) => {
-  const { addToast } = useUIStore();
-  const isEditing = !!item;
-
-  const [formData, setFormData] = React.useState({
-    name: item?.name || '',
-    code: item?.code || '',
-    description: ''
-  });
-  const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      setError('Name is required');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      if (type === 'department') {
-        const data: DepartmentCreate = {
-          name: formData.name,
-          code: formData.code || undefined
-        };
-        if (isEditing) {
-          await adminService.updateDepartment(item!.id, data);
-        } else {
-          await adminService.createDepartment(data);
-        }
-      } else {
-        const data: CategoryCreate = {
-          name: formData.name,
-          code: formData.code || undefined,
-          description: formData.description || undefined
-        };
-        if (isEditing) {
-          await adminService.updateCategory(item!.id, data);
-        } else {
-          await adminService.createCategory(data);
-        }
-      }
-
-      addToast({
-        type: 'success',
-        title: isEditing ? 'Updated' : 'Created',
-        message: `${type === 'department' ? 'Department' : 'Category'} ${formData.name} has been ${isEditing ? 'updated' : 'created'}`
-      });
-      onSaved();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.detail || `Failed to ${isEditing ? 'update' : 'create'} ${type}`
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {isEditing ? 'Edit' : 'Add'} {type === 'department' ? 'Department' : 'Category'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-md">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name *
-            </label>
-            <Input
-              value={formData.name}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, name: e.target.value }));
-                setError('');
-              }}
-              placeholder={`Enter ${type} name`}
-              error={error}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Code
-            </label>
-            <Input
-              value={formData.code}
-              onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-              placeholder="e.g., IT, PWD"
-              maxLength={10}
-            />
-            <p className="text-xs text-gray-500 mt-1">Optional short code (max 10 chars)</p>
-          </div>
-
-          {type === 'category' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <FocusTextarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Brief description"
-                rows={3}
-              />
-            </div>
-          )}
-        </form>
-
-        <div className="flex items-center justify-end gap-3 p-4 border-t bg-gray-50">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            loading={saving}
-            icon={<Save className="w-4 h-4" />}
-          >
-            {isEditing ? 'Update' : 'Create'}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import type { Department } from '../../types';
 
 const DepartmentManagement: React.FC = () => {
   const { addToast } = useUIStore();
-
-  const [activeTab, setActiveTab] = React.useState<TabType>('departments');
   const [departments, setDepartments] = React.useState<Department[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [showInactive, setShowInactive] = React.useState(false);
-  const [showModal, setShowModal] = React.useState(false);
-  const [editingItem, setEditingItem] = React.useState<Department | Category | null>(null);
+  const [showForm, setShowForm] = React.useState(false);
+  const [editing, setEditing] = React.useState<Department | null>(null);
+  const [formData, setFormData] = React.useState({ name: '', code: '' });
+  const [menuOpen, setMenuOpen] = React.useState<number | null>(null);
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
     try {
-      const [deptsData, catsData] = await Promise.all([
-        adminService.getDepartments(true),
-        adminService.getCategories(true)
-      ]);
-      setDepartments(deptsData);
-      setCategories(catsData);
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to load data'
-      });
+      const data = await adminService.getDepartments(true);
+      setDepartments(data);
+    } catch {
+      addToast({ type: 'error', title: 'Error', message: 'Failed to load departments' });
     } finally {
       setLoading(false);
     }
@@ -260,232 +34,189 @@ const DepartmentManagement: React.FC = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleCreate = () => {
-    setEditingItem(null);
-    setShowModal(true);
-  };
-
-  const handleEdit = (item: Department | Category) => {
-    setEditingItem(item);
-    setShowModal(true);
-  };
-
-  const handleDelete = async (item: Department | Category) => {
-    const type = activeTab === 'departments' ? 'department' : 'category';
-    if (!confirm(`Are you sure you want to delete ${item.name}?`)) return;
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      if (activeTab === 'departments') {
-        await adminService.deleteDepartment(item.id);
+      if (editing) {
+        await adminService.updateDepartment(editing.id, formData);
+        addToast({ type: 'success', title: 'Updated', message: 'Department updated' });
       } else {
-        await adminService.deleteCategory(item.id);
+        await adminService.createDepartment(formData);
+        addToast({ type: 'success', title: 'Created', message: 'Department created' });
       }
-      addToast({
-        type: 'success',
-        title: 'Deleted',
-        message: `${type} ${item.name} has been deleted`
-      });
+      setShowForm(false);
+      setEditing(null);
+      setFormData({ name: '', code: '' });
       fetchData();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.detail || `Failed to delete ${type}`
-      });
+    } catch {
+      addToast({ type: 'error', title: 'Error', message: 'Operation failed' });
     }
   };
 
-  const handleToggleStatus = async (item: Department | Category) => {
+  const handleDelete = async (dept: Department) => {
+    if (!confirm(`Delete ${dept.name}?`)) return;
     try {
-      if (activeTab === 'departments') {
-        await adminService.updateDepartment(item.id, { is_active: !item.is_active });
-      } else {
-        await adminService.updateCategory(item.id, { is_active: !item.is_active });
-      }
-      addToast({
-        type: 'success',
-        title: 'Updated',
-        message: `${item.name} has been ${item.is_active ? 'deactivated' : 'activated'}`
-      });
+      await adminService.deleteDepartment(dept.id);
+      addToast({ type: 'success', title: 'Deleted', message: 'Department deleted' });
       fetchData();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to update status'
-      });
+    } catch {
+      addToast({ type: 'error', title: 'Error', message: 'Failed to delete' });
     }
+    setMenuOpen(null);
   };
 
-  const handleModalClose = () => {
-    setShowModal(false);
-    setEditingItem(null);
+  const openEdit = (dept: Department) => {
+    setEditing(dept);
+    setFormData({ name: dept.name, code: dept.code || '' });
+    setShowForm(true);
+    setMenuOpen(null);
   };
 
-  const handleSaved = () => {
-    handleModalClose();
-    fetchData();
-  };
-
-  const currentItems = activeTab === 'departments' ? departments : categories;
-  const filteredItems = showInactive ? currentItems : currentItems.filter(i => i.is_active);
-
-  if (loading) {
-    return <Loading text="Loading..." />;
-  }
+  if (loading) return <Loading text="Loading departments..." />;
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          { label: 'Dashboard', path: '/dashboard' },
-          { label: 'Admin', path: '/admin/users' },
-          { label: 'Departments & Categories' }
-        ]}
+    <div>
+      <PageHeader
+        title="Departments"
+        subtitle={`${departments.length} departments`}
+        icon={<Building2 size={24} color="#1e3a5f" />}
+        actions={
+          <Button
+            icon={<Plus size={16} />}
+            onClick={() => {
+              setEditing(null);
+              setFormData({ name: '', code: '' });
+              setShowForm(true);
+            }}
+          >
+            Add Department
+          </Button>
+        }
       />
 
-      {/* Header */}
-      <div className="bg-white rounded-lg p-6" style={{ boxShadow: shadows.govt }}>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: colors.primaryAlpha10 }}>
-              <Building2 className="w-6 h-6" style={{ color: colors.primary }} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Departments & Categories</h1>
-              <p className="text-gray-600">
-                Manage organizational structure and tender categories
-              </p>
-            </div>
-          </div>
-          <Button onClick={handleCreate} icon={<Plus className="w-4 h-4" />}>
-            Add {activeTab === 'departments' ? 'Department' : 'Category'}
-          </Button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex items-center gap-2 mt-6 border-t pt-4">
-          <TabButton
-            active={activeTab === 'departments'}
-            onClick={() => setActiveTab('departments')}
-            icon={<Building2 className="w-4 h-4" />}
-            label={`Departments (${departments.filter(d => d.is_active).length})`}
-          />
-          <TabButton
-            active={activeTab === 'categories'}
-            onClick={() => setActiveTab('categories')}
-            icon={<Tag className="w-4 h-4" />}
-            label={`Categories (${categories.filter(c => c.is_active).length})`}
-          />
-        </div>
-      </div>
-
-      {/* Filter */}
-      <Card>
-        <CardContent className="p-4">
-          <label className="flex items-center gap-2 text-sm text-gray-600">
-            <FocusCheckbox
-              checked={showInactive}
-              onChange={(e) => setShowInactive(e.target.checked)}
-            />
-            Show inactive {activeTab}
-          </label>
-        </CardContent>
-      </Card>
-
-      {/* Items Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredItems.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="py-12 text-center">
-              {activeTab === 'departments' ? (
-                <Building2 className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              ) : (
-                <Tag className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              )}
-              <p className="text-gray-500">No {activeTab} found</p>
+      {/* Form Modal */}
+      {showForm && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}>
+          <Card style={{ width: '100%', maxWidth: 400 }}>
+            <CardContent style={{ padding: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 16px' }}>{editing ? 'Edit' : 'Add'} Department</h3>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Input label="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                <Input label="Code" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} placeholder="e.g., IT, HR" />
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" style={{ flex: 1 }}>
+                    {editing ? 'Update' : 'Create'}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
-        ) : (
-          filteredItems.map(item => (
-            <Card
-              key={item.id}
-              className={`${!item.is_active ? 'opacity-60' : ''}`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${
-                      activeTab === 'departments' ? 'bg-blue-100' : 'bg-green-100'
-                    }`}>
-                      {activeTab === 'departments' ? (
-                        <Building2 className="w-5 h-5 text-blue-600" />
-                      ) : (
-                        <Tag className="w-5 h-5 text-green-600" />
-                      )}
+        </div>
+      )}
+
+      {/* List */}
+      <Card>
+        <CardContent style={{ padding: 0 }}>
+          {departments.length === 0 ? (
+            <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
+              <Building2 size={40} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
+              <p>No departments yet</p>
+            </div>
+          ) : (
+            <div>
+              {departments.map((dept) => (
+                <div
+                  key={dept.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 20px',
+                    borderBottom: '1px solid #f3f4f6',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 8,
+                        backgroundColor: 'rgba(30,58,95,0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Building2 size={20} color="#1e3a5f" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                      {item.code && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                          {item.code}
-                        </span>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>{dept.name}</p>
+                      {dept.code && <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>Code: {dept.code}</p>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 500,
+                        backgroundColor: dept.is_active ? '#dcfce7' : '#fee2e2',
+                        color: dept.is_active ? '#15803d' : '#b91c1c',
+                      }}
+                    >
+                      {dept.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setMenuOpen(menuOpen === dept.id ? null : dept.id)}
+                        style={{ padding: 6, background: 'none', border: 'none', cursor: 'pointer', borderRadius: 4 }}
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                      {menuOpen === dept.id && (
+                        <>
+                          <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setMenuOpen(null)} />
+                          <div
+                            style={{
+                              position: 'absolute',
+                              right: 0,
+                              top: '100%',
+                              width: 120,
+                              backgroundColor: '#fff',
+                              borderRadius: 6,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              border: '1px solid #e5e7eb',
+                              zIndex: 20,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <button
+                              onClick={() => openEdit(dept)}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                              <Edit size={14} /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(dept)}
+                              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', fontSize: 13, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer' }}
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {item.is_active ? (
-                      <span className="text-green-600">
-                        <CheckCircle className="w-5 h-5" />
-                      </span>
-                    ) : (
-                      <span className="text-red-600">
-                        <XCircle className="w-5 h-5" />
-                      </span>
-                    )}
-                  </div>
                 </div>
-
-                <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleStatus(item)}
-                  >
-                    {item.is_active ? 'Deactivate' : 'Activate'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(item)}
-                    icon={<Edit className="w-4 h-4" />}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(item)}
-                    className="text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Form Modal */}
-      {showModal && (
-        <FormModal
-          type={activeTab === 'departments' ? 'department' : 'category'}
-          item={editingItem}
-          onClose={handleModalClose}
-          onSaved={handleSaved}
-        />
-      )}
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

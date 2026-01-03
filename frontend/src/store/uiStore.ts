@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface Toast {
   id: string;
@@ -9,44 +10,45 @@ interface Toast {
 
 interface UIState {
   sidebarOpen: boolean;
+  sidebarCollapsed: boolean;
   toasts: Toast[];
 
-  // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  toggleSidebarCollapse: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   addToast: (toast: Omit<Toast, 'id'>) => void;
   removeToast: (id: string) => void;
-  clearToasts: () => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
-  sidebarOpen: typeof window !== 'undefined' && window.innerWidth >= 1024,
-  toasts: [],
+export const useUIStore = create<UIState>()(
+  persist(
+    (set) => ({
+      sidebarOpen: false,
+      sidebarCollapsed: false,
+      toasts: [],
 
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+      setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
+      toggleSidebarCollapse: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      setSidebarCollapsed: (collapsed: boolean) => set({ sidebarCollapsed: collapsed }),
 
-  setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
+      addToast: (toast: Omit<Toast, 'id'>) => {
+        const id = Math.random().toString(36).substring(2, 9);
+        set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
+        setTimeout(() => {
+          set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+        }, 5000);
+      },
 
-  addToast: (toast: Omit<Toast, 'id'>) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    set((state) => ({
-      toasts: [...state.toasts, { ...toast, id }]
-    }));
-
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      set((state) => ({
-        toasts: state.toasts.filter((t) => t.id !== id)
-      }));
-    }, 5000);
-  },
-
-  removeToast: (id: string) =>
-    set((state) => ({
-      toasts: state.toasts.filter((t) => t.id !== id)
-    })),
-
-  clearToasts: () => set({ toasts: [] })
-}));
+      removeToast: (id: string) =>
+        set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+    }),
+    {
+      name: 'ui-storage',
+      partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }),
+    }
+  )
+);
 
 export default useUIStore;

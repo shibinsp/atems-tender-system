@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Grid, List, RefreshCw } from 'lucide-react';
+import { Plus, Search, FileText, Calendar } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import { Card, CardContent } from '../../components/ui/Card';
+import PageHeader from '../../components/ui/PageHeader';
 import Loading from '../../components/ui/Loading';
-import Breadcrumb from '../../components/layout/Breadcrumb';
-import TenderCard from '../../components/tender/TenderCard';
-import TenderFilters from '../../components/tender/TenderFilters';
+import StatusBadge from '../../components/ui/StatusBadge';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
 import tenderService from '../../services/tenderService';
-import { shadows } from '../../styles/constants';
-import type { Tender, Category, Department } from '../../types';
+import { formatDate, formatCurrency } from '../../utils/formatters';
+import type { Tender } from '../../types';
 
 const TenderList: React.FC = () => {
   const { user } = useAuthStore();
@@ -19,277 +20,147 @@ const TenderList: React.FC = () => {
 
   const [tenders, setTenders] = React.useState<Tender[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [departments, setDepartments] = React.useState<Department[]>([]);
-  const [totalPages, setTotalPages] = React.useState(1);
-  const [totalItems, setTotalItems] = React.useState(0);
-  const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
+  const [total, setTotal] = React.useState(0);
 
-  // Filter state from URL params
   const page = parseInt(searchParams.get('page') || '1');
   const search = searchParams.get('search') || '';
   const status = searchParams.get('status') || '';
-  const categoryId = searchParams.get('category_id') || '';
-  const departmentId = searchParams.get('department_id') || '';
 
-  const canManageTenders = user?.role === 'Admin' || user?.role === 'Tender Officer';
+  const canCreate = user?.role === 'Admin' || user?.role === 'Tender Officer';
 
   const fetchTenders = React.useCallback(async () => {
     setLoading(true);
     try {
-      const response = await tenderService.getTenders({
-        page,
-        size: 12,
-        search: search || undefined,
-        status: status || undefined,
-        category_id: categoryId ? parseInt(categoryId) : undefined,
-        department_id: departmentId ? parseInt(departmentId) : undefined
-      });
-      setTenders(response.items);
-      setTotalPages(response.pages);
-      setTotalItems(response.total);
-    } catch (error) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: 'Failed to load tenders'
-      });
+      const res = await tenderService.getTenders({ page, size: 12, search: search || undefined, status: status || undefined });
+      setTenders(res.items);
+      setTotal(res.total);
+    } catch {
+      addToast({ type: 'error', title: 'Error', message: 'Failed to load tenders' });
     } finally {
       setLoading(false);
     }
-  }, [page, search, status, categoryId, departmentId, addToast]);
-
-  const fetchFiltersData = async () => {
-    try {
-      const [cats, depts] = await Promise.all([
-        tenderService.getCategories().catch(() => []),
-        tenderService.getDepartments().catch(() => [])
-      ]);
-      setCategories(cats);
-      setDepartments(depts);
-    } catch (error) {
-      console.error('Failed to load filter data:', error);
-    }
-  };
+  }, [page, search, status, addToast]);
 
   React.useEffect(() => {
     fetchTenders();
   }, [fetchTenders]);
 
-  React.useEffect(() => {
-    fetchFiltersData();
-  }, []);
-
   const updateFilter = (key: string, value: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (value) {
-      newParams.set(key, value);
-    } else {
-      newParams.delete(key);
-    }
-    if (key !== 'page') {
-      newParams.set('page', '1');
-    }
-    setSearchParams(newParams);
+    const params = new URLSearchParams(searchParams);
+    value ? params.set(key, value) : params.delete(key);
+    if (key !== 'page') params.set('page', '1');
+    setSearchParams(params);
   };
-
-  const clearFilters = () => {
-    setSearchParams({});
-  };
-
-  const handlePublish = async (id: number) => {
-    try {
-      await tenderService.publishTender(id);
-      addToast({
-        type: 'success',
-        title: 'Published',
-        message: 'Tender has been published successfully'
-      });
-      fetchTenders();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.detail || 'Failed to publish tender'
-      });
-    }
-  };
-
-  const handleClone = async (id: number) => {
-    try {
-      await tenderService.cloneTender(id);
-      addToast({
-        type: 'success',
-        title: 'Cloned',
-        message: 'Tender has been cloned successfully'
-      });
-      fetchTenders();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.detail || 'Failed to clone tender'
-      });
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this tender?')) return;
-    try {
-      await tenderService.deleteTender(id);
-      addToast({
-        type: 'success',
-        title: 'Deleted',
-        message: 'Tender has been deleted successfully'
-      });
-      fetchTenders();
-    } catch (error: any) {
-      addToast({
-        type: 'error',
-        title: 'Error',
-        message: error.response?.data?.detail || 'Failed to delete tender'
-      });
-    }
-  };
-
-  if (loading && tenders.length === 0) {
-    return <Loading text="Loading tenders..." />;
-  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumb items={[{ label: 'Tenders' }]} />
-
-      {/* Header */}
-      <div className="tender-header">
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#111827' }}>Tenders</h1>
-          <p style={{ marginTop: '4px', fontSize: '14px', color: '#6b7280' }}>
-            {totalItems} tender{totalItems !== 1 ? 's' : ''} found
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: '6px', padding: '4px' }}>
-            <button
-              onClick={() => setViewMode('grid')}
-              style={{
-                padding: '6px',
-                borderRadius: '4px',
-                backgroundColor: viewMode === 'grid' ? 'white' : 'transparent',
-                boxShadow: viewMode === 'grid' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <Grid style={{ width: '16px', height: '16px', color: '#4b5563' }} />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              style={{
-                padding: '6px',
-                borderRadius: '4px',
-                backgroundColor: viewMode === 'list' ? 'white' : 'transparent',
-                boxShadow: viewMode === 'list' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <List style={{ width: '16px', height: '16px', color: '#4b5563' }} />
-            </button>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchTenders}
-            icon={<RefreshCw style={{ width: '16px', height: '16px' }} />}
-          >
-            Refresh
-          </Button>
-          {canManageTenders && (
+    <div>
+      <PageHeader
+        title="Tenders"
+        subtitle={`${total} tender${total !== 1 ? 's' : ''} found`}
+        icon={<FileText size={24} color="#1e3a5f" />}
+        actions={
+          canCreate && (
             <Link to="/tenders/create">
-              <Button icon={<Plus style={{ width: '16px', height: '16px' }} />}>
-                Create Tender
-              </Button>
+              <Button icon={<Plus size={16} />}>Create Tender</Button>
             </Link>
-          )}
-        </div>
-      </div>
-
-      {/* Filters */}
-      <TenderFilters
-        search={search}
-        onSearchChange={(v) => updateFilter('search', v)}
-        status={status}
-        onStatusChange={(v) => updateFilter('status', v)}
-        categoryId={categoryId}
-        onCategoryChange={(v) => updateFilter('category_id', v)}
-        departmentId={departmentId}
-        onDepartmentChange={(v) => updateFilter('department_id', v)}
-        categories={categories}
-        departments={departments}
-        onClear={clearFilters}
+          )
+        }
       />
 
-      {/* Tender Grid/List */}
-      {tenders.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '48px 0',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: shadows.govt
-        }}>
-          <div style={{ color: '#9ca3af', marginBottom: '16px' }}>
-            <svg style={{ margin: '0 auto', height: '48px', width: '48px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+      {/* Filters */}
+      <Card style={{ marginBottom: 20 }}>
+        <CardContent style={{ padding: 16 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+              <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+              <Input
+                value={search}
+                onChange={(e) => updateFilter('search', e.target.value)}
+                placeholder="Search tenders..."
+                style={{ paddingLeft: 36 }}
+              />
+            </div>
+            <select
+              value={status}
+              onChange={(e) => updateFilter('status', e.target.value)}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, minWidth: 150 }}
+            >
+              <option value="">All Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Published">Published</option>
+              <option value="Under Evaluation">Under Evaluation</option>
+              <option value="Awarded">Awarded</option>
+              <option value="Closed">Closed</option>
+            </select>
           </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 500, color: '#111827', marginBottom: '4px' }}>No tenders found</h3>
-          <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-            {search || status || categoryId || departmentId
-              ? 'Try adjusting your filters'
-              : 'Get started by creating a new tender'}
-          </p>
-          {canManageTenders && !search && !status && (
-            <Link to="/tenders/create">
-              <Button icon={<Plus style={{ width: '16px', height: '16px' }} />}>Create Tender</Button>
-            </Link>
-          )}
-        </div>
+        </CardContent>
+      </Card>
+
+      {/* Tender List */}
+      {loading ? (
+        <Loading text="Loading tenders..." />
+      ) : tenders.length === 0 ? (
+        <Card>
+          <CardContent style={{ padding: 60, textAlign: 'center' }}>
+            <FileText size={48} style={{ color: '#d1d5db', margin: '0 auto 12px' }} />
+            <p style={{ fontSize: 16, color: '#6b7280' }}>No tenders found</p>
+            {canCreate && (
+              <Link to="/tenders/create" style={{ marginTop: 16, display: 'inline-block' }}>
+                <Button>Create First Tender</Button>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
       ) : (
-        <div className={viewMode === 'grid' ? 'tender-grid' : 'tender-list'}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
           {tenders.map((tender) => (
-            <TenderCard
-              key={tender.id}
-              tender={tender}
-              onPublish={canManageTenders ? handlePublish : undefined}
-              onClone={canManageTenders ? handleClone : undefined}
-              onDelete={canManageTenders ? handleDelete : undefined}
-              showActions={canManageTenders}
-            />
+            <Link key={tender.id} to={`/tenders/${tender.id}`} style={{ textDecoration: 'none' }}>
+              <Card style={{ height: '100%', transition: 'box-shadow 0.2s' }} className="tender-card">
+                <CardContent style={{ padding: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: '#6b7280', fontFamily: 'monospace' }}>{tender.tender_id}</span>
+                    <StatusBadge status={tender.status} size="sm" />
+                  </div>
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: '0 0 12px', lineHeight: 1.4 }}>
+                    {tender.title.length > 80 ? tender.title.slice(0, 80) + '...' : tender.title}
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13, color: '#6b7280' }}>
+                    {tender.estimated_value && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontWeight: 600, color: '#111827' }}>{formatCurrency(Number(tender.estimated_value))}</span>
+                      </div>
+                    )}
+                    {tender.submission_deadline && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Calendar size={14} />
+                        <span>Due: {formatDate(tender.submission_deadline)}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '24px' }}>
+      {total > 12 && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
           <Button
             variant="outline"
-            size="sm"
             disabled={page <= 1}
-            onClick={() => updateFilter('page', (page - 1).toString())}
+            onClick={() => updateFilter('page', String(page - 1))}
           >
             Previous
           </Button>
-          <span style={{ padding: '8px 16px', fontSize: '14px', color: '#4b5563' }}>
-            Page {page} of {totalPages}
+          <span style={{ padding: '8px 16px', fontSize: 14, color: '#6b7280' }}>
+            Page {page} of {Math.ceil(total / 12)}
           </span>
           <Button
             variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() => updateFilter('page', (page + 1).toString())}
+            disabled={page >= Math.ceil(total / 12)}
+            onClick={() => updateFilter('page', String(page + 1))}
           >
             Next
           </Button>
@@ -297,38 +168,7 @@ const TenderList: React.FC = () => {
       )}
 
       <style>{`
-        .tender-header {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        .tender-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 16px;
-        }
-        .tender-list {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-        @media (min-width: 640px) {
-          .tender-header {
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-          }
-        }
-        @media (min-width: 768px) {
-          .tender-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-        @media (min-width: 1024px) {
-          .tender-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-        }
+        .tender-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
       `}</style>
     </div>
   );

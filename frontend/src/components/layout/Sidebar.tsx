@@ -10,11 +10,12 @@ import {
   Users,
   Settings,
   Building2,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
-import { colors } from '../../styles/constants';
 
 interface MenuItem {
   icon: React.ElementType;
@@ -38,68 +39,69 @@ const menuItems: MenuItem[] = [
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user } = useAuthStore();
-  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen, sidebarCollapsed, toggleSidebarCollapse } = useUIStore();
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (!item.roles) return true;
     return user && item.roles.includes(user.role);
   });
 
+  const sidebarWidth = sidebarCollapsed ? 72 : 256;
+
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="sidebar-overlay"
           style={{
             position: 'fixed',
             inset: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 30,
+            zIndex: 40,
           }}
+          className="lg-hide"
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className="sidebar-container"
         style={{
           position: 'fixed',
           left: 0,
-          top: '64px',
+          top: 64,
           height: 'calc(100vh - 64px)',
-          width: '256px',
-          backgroundColor: colors.primary,
-          color: 'white',
-          boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)',
-          zIndex: 30,
-          transition: 'transform 0.3s ease-in-out',
-          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          width: sidebarWidth,
+          backgroundColor: '#1e3a5f',
+          zIndex: 40,
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
         }}
+        className={sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}
       >
-        {/* Close button for mobile */}
+        {/* Mobile Close */}
         <button
           onClick={() => setSidebarOpen(false)}
-          className="sidebar-close-btn"
+          className="lg-hide"
           style={{
             position: 'absolute',
-            top: '16px',
-            right: '16px',
-            padding: '4px',
-            color: 'rgba(255, 255, 255, 0.7)',
-            backgroundColor: 'transparent',
+            top: 12,
+            right: 12,
+            padding: 4,
+            color: 'rgba(255,255,255,0.7)',
+            background: 'none',
             border: 'none',
             cursor: 'pointer',
           }}
         >
-          <X style={{ width: '20px', height: '20px' }} />
+          <X size={20} />
         </button>
 
-        <nav style={{ padding: '16px 0', marginTop: '32px' }} className="sidebar-nav">
+        {/* Nav Items */}
+        <nav style={{ flex: 1, paddingTop: 16, overflowY: 'auto' }}>
           {filteredMenuItems.map((item) => {
-            const isActive = location.pathname === item.path ||
-                           location.pathname.startsWith(item.path + '/');
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             const Icon = item.icon;
 
             return (
@@ -107,63 +109,68 @@ const Sidebar: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
+                title={sidebarCollapsed ? item.label : undefined}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '12px 24px',
-                  fontSize: '14px',
+                  padding: sidebarCollapsed ? '12px 0' : '12px 20px',
+                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                  fontSize: 14,
                   fontWeight: 500,
                   textDecoration: 'none',
-                  transition: 'background-color 0.15s',
-                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                  borderRight: isActive ? `4px solid ${colors.accent}` : '4px solid transparent',
-                  color: isActive ? 'white' : '#cbd5e0',
+                  color: isActive ? '#fff' : '#94a3b8',
+                  backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  borderLeft: isActive ? '3px solid #d69e2e' : '3px solid transparent',
+                  transition: 'all 0.15s',
                 }}
               >
-                <Icon style={{ width: '20px', height: '20px', marginRight: '12px' }} />
-                {item.label}
+                <Icon size={20} style={{ flexShrink: 0 }} />
+                {!sidebarCollapsed && <span style={{ marginLeft: 12 }}>{item.label}</span>}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div
+        {/* Collapse Toggle - Desktop Only */}
+        <button
+          onClick={toggleSidebarCollapse}
+          className="lg-show"
           style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: '16px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 12,
+            margin: 8,
+            color: '#94a3b8',
+            background: 'rgba(255,255,255,0.05)',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
           }}
         >
-          <p
-            style={{
-              fontSize: '12px',
-              color: 'rgba(255, 255, 255, 0.5)',
-              textAlign: 'center',
-              margin: 0,
-            }}
-          >
-            ATEMS v1.0.0
+          {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {!sidebarCollapsed && <span style={{ marginLeft: 8, fontSize: 13 }}>Collapse</span>}
+        </button>
+
+        {/* Footer */}
+        <div style={{ padding: 12, borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+            {sidebarCollapsed ? 'v1.0' : 'ATEMS v1.0.0'}
           </p>
         </div>
       </aside>
+
       <style>{`
+        @media (max-width: 1023px) {
+          .sidebar-closed { transform: translateX(-100%); }
+          .sidebar-open { transform: translateX(0); }
+          .lg-hide { display: block; }
+          .lg-show { display: none !important; }
+        }
         @media (min-width: 1024px) {
-          .sidebar-container {
-            transform: translateX(0) !important;
-          }
-          .sidebar-overlay {
-            display: none !important;
-          }
-          .sidebar-close-btn {
-            display: none !important;
-          }
-          .sidebar-nav {
-            margin-top: 0 !important;
-          }
+          .sidebar-closed, .sidebar-open { transform: translateX(0); }
+          .lg-hide { display: none !important; }
+          .lg-show { display: flex !important; }
         }
       `}</style>
     </>
