@@ -1,256 +1,144 @@
 import React from 'react';
-import {
-  FileText,
-  Download,
-  Printer,
-  Copy,
-  CheckCircle,
-  Building2
-} from 'lucide-react';
+import { Download, FileText, Printer } from 'lucide-react';
 import Button from '../ui/Button';
-import type { RFPSection, Clause, Tender } from '../../types';
-import { formatCurrency } from '../../utils/formatters';
+import { Card, CardContent } from '../ui/Card';
+import type { Tender, RFPSection, Clause } from '../../types';
+import { formatDate, formatCurrency } from '../../utils/formatters';
 
 interface RFPPreviewProps {
-  tender?: Tender | null;
+  tender: Tender | null;
   sections: RFPSection[];
   clauses: Clause[];
   selectedClauseIds: number[];
-  onExport?: (format: 'pdf' | 'docx') => void;
+  onExport: (format: 'pdf' | 'docx') => void;
 }
 
-const RFPPreview: React.FC<RFPPreviewProps> = ({
-  tender,
-  sections,
-  clauses,
-  selectedClauseIds,
-  onExport
-}) => {
-  const [copied, setCopied] = React.useState(false);
-  const previewRef = React.useRef<HTMLDivElement>(null);
-
-  const selectedClauses = clauses.filter(c => selectedClauseIds.includes(c.id));
-
-  const handleCopy = async () => {
-    if (previewRef.current) {
-      try {
-        await navigator.clipboard.writeText(previewRef.current.innerText);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch {
-        console.error('Failed to copy');
-      }
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
+const RFPPreview: React.FC<RFPPreviewProps> = ({ tender, sections, clauses, selectedClauseIds, onExport }) => {
+  const selectedClauses = clauses.filter((c) => selectedClauseIds.includes(c.id));
 
   return (
-    <div className="space-y-4">
-      {/* Actions */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-primary" />
-          RFP Preview
-        </h3>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopy}
-            icon={copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-          >
-            {copied ? 'Copied!' : 'Copy'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            icon={<Printer className="w-4 h-4" />}
-          >
-            Print
-          </Button>
-          {onExport && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onExport('pdf')}
-                icon={<Download className="w-4 h-4" />}
-              >
-                PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onExport('docx')}
-                icon={<Download className="w-4 h-4" />}
-              >
-                Word
-              </Button>
-            </>
-          )}
-        </div>
+    <div>
+      {/* Export Actions */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        <Button onClick={() => onExport('pdf')} icon={<Download size={16} />}>
+          Export PDF
+        </Button>
+        <Button variant="outline" onClick={() => onExport('docx')} icon={<FileText size={16} />}>
+          Export Word
+        </Button>
+        <Button variant="outline" onClick={() => window.print()} icon={<Printer size={16} />}>
+          Print
+        </Button>
       </div>
 
-      {/* Preview Container */}
-      <div
-        ref={previewRef}
-        className="bg-white border border-gray-200 rounded-lg shadow-sm p-8 max-h-[600px] overflow-y-auto print:max-h-none print:overflow-visible"
-      >
-        {/* Header */}
-        <div className="text-center border-b-2 border-gray-300 pb-6 mb-6">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-primary" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            REQUEST FOR PROPOSAL (RFP)
-          </h1>
-          {tender && (
-            <>
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                {tender.title}
-              </h2>
-              <div className="flex justify-center gap-8 text-sm text-gray-600">
-                <div>
-                  <span className="font-medium">Tender ID:</span> {tender.tender_id}
-                </div>
-                {tender.estimated_value && (
-                  <div>
-                    <span className="font-medium">Estimated Value:</span>{' '}
-                    {formatCurrency(tender.estimated_value)}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Table of Contents */}
-        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">Table of Contents</h3>
-          <div className="space-y-1">
-            {sections.map(section => (
-              <div key={section.id} className="flex items-center text-sm">
-                <span className="font-medium text-gray-700 w-8">{section.order}.</span>
-                <span className="text-gray-600">{section.title}</span>
-                <span className="flex-1 border-b border-dotted border-gray-300 mx-2" />
-                <span className="text-gray-400">Page {section.order}</span>
-              </div>
-            ))}
-            {selectedClauses.length > 0 && (
-              <div className="flex items-center text-sm">
-                <span className="font-medium text-gray-700 w-8">{sections.length + 1}.</span>
-                <span className="text-gray-600">Standard Clauses</span>
-                <span className="flex-1 border-b border-dotted border-gray-300 mx-2" />
-                <span className="text-gray-400">Page {sections.length + 1}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sections */}
-        {sections.map(section => (
-          <div key={section.id} className="mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
-              {section.order}. {section.title}
-              {section.is_mandatory && (
-                <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                  Mandatory
-                </span>
+      {/* Preview Document */}
+      <Card>
+        <CardContent style={{ padding: 0 }}>
+          <div
+            style={{
+              maxHeight: 600,
+              overflowY: 'auto',
+              padding: 40,
+              backgroundColor: '#fff',
+              fontFamily: 'Georgia, serif',
+            }}
+          >
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 40, paddingBottom: 20, borderBottom: '2px solid #1e3a5f' }}>
+              <h1 style={{ fontSize: 24, fontWeight: 700, color: '#1e3a5f', margin: '0 0 8px', textTransform: 'uppercase' }}>
+                Request for Proposal
+              </h1>
+              {tender && (
+                <>
+                  <h2 style={{ fontSize: 18, fontWeight: 600, color: '#374151', margin: '0 0 16px' }}>{tender.title}</h2>
+                  <p style={{ fontSize: 14, color: '#6b7280', margin: 0 }}>
+                    Reference: {tender.tender_id} | Date: {formatDate(new Date().toISOString())}
+                  </p>
+                </>
               )}
-            </h3>
+            </div>
 
-            {section.content ? (
-              <div className="text-gray-700 whitespace-pre-wrap mb-4">
-                {section.content}
+            {/* Tender Details */}
+            {tender && (
+              <div style={{ marginBottom: 32, padding: 20, backgroundColor: '#f9fafb', borderRadius: 8 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1e3a5f', margin: '0 0 12px', textTransform: 'uppercase' }}>
+                  Tender Information
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, fontSize: 13 }}>
+                  <div>
+                    <span style={{ color: '#6b7280' }}>Type:</span>{' '}
+                    <span style={{ color: '#111827', fontWeight: 500 }}>{tender.tender_type}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#6b7280' }}>Stage:</span>{' '}
+                    <span style={{ color: '#111827', fontWeight: 500 }}>{tender.tender_stage}</span>
+                  </div>
+                  {tender.estimated_value && (
+                    <div>
+                      <span style={{ color: '#6b7280' }}>Estimated Value:</span>{' '}
+                      <span style={{ color: '#111827', fontWeight: 500 }}>{formatCurrency(Number(tender.estimated_value))}</span>
+                    </div>
+                  )}
+                  {tender.submission_deadline && (
+                    <div>
+                      <span style={{ color: '#6b7280' }}>Submission Deadline:</span>{' '}
+                      <span style={{ color: '#111827', fontWeight: 500 }}>{formatDate(tender.submission_deadline)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-400 italic mb-4">
-                [Section content to be added]
-              </p>
             )}
 
-            {section.subsections && section.subsections.length > 0 && (
-              <div className="space-y-4 ml-4">
-                {section.subsections.map(sub => (
-                  <div key={sub.id}>
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      {section.order}.{sub.order} {sub.title}
+            {/* Sections */}
+            {sections.map((section, index) => (
+              <div key={section.id} style={{ marginBottom: 28 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e3a5f', margin: '0 0 12px' }}>
+                  {index + 1}. {section.title}
+                </h3>
+                {section.content && (
+                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: '0 0 12px', whiteSpace: 'pre-wrap' }}>
+                    {section.content}
+                  </p>
+                )}
+                {section.subsections?.map((sub, subIndex) => (
+                  <div key={sub.id} style={{ marginLeft: 20, marginBottom: 12 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 6px' }}>
+                      {index + 1}.{subIndex + 1} {sub.title}
                     </h4>
-                    {sub.content ? (
-                      <div className="text-gray-700 whitespace-pre-wrap">
-                        {sub.content}
-                      </div>
-                    ) : (
-                      <p className="text-gray-400 italic">
-                        [Subsection content to be added]
-                      </p>
+                    {sub.content && (
+                      <p style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{sub.content}</p>
                     )}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        ))}
-
-        {/* Selected Clauses */}
-        {selectedClauses.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-3 border-b border-gray-200 pb-2">
-              {sections.length + 1}. Standard Clauses
-            </h3>
-
-            {/* Group clauses by category */}
-            {Object.entries(
-              selectedClauses.reduce((acc, clause) => {
-                if (!acc[clause.category]) acc[clause.category] = [];
-                acc[clause.category].push(clause);
-                return acc;
-              }, {} as Record<string, Clause[]>)
-            ).map(([category, categoryClauses], categoryIndex) => (
-              <div key={category} className="mb-6">
-                <h4 className="font-semibold text-gray-800 mb-3">
-                  {sections.length + 1}.{categoryIndex + 1} {category} Clauses
-                </h4>
-                <div className="space-y-4 ml-4">
-                  {categoryClauses.map((clause, clauseIndex) => (
-                    <div key={clause.id}>
-                      <h5 className="font-medium text-gray-700 mb-1">
-                        {sections.length + 1}.{categoryIndex + 1}.{clauseIndex + 1} {clause.title}
-                        {clause.is_mandatory && (
-                          <span className="ml-2 text-xs text-amber-600">(Mandatory)</span>
-                        )}
-                      </h5>
-                      <p className="text-gray-700 whitespace-pre-wrap">{clause.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             ))}
-          </div>
-        )}
 
-        {/* Footer */}
-        <div className="border-t-2 border-gray-300 pt-6 mt-8 text-center text-sm text-gray-500">
-          <p className="mb-2">
-            This RFP document is generated by ATEMS - AI-Based Tender Evaluation & Management System
-          </p>
-          <p>
-            Generated on: {new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </p>
-        </div>
-      </div>
+            {/* Selected Clauses */}
+            {selectedClauses.length > 0 && (
+              <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px solid #e5e7eb' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e3a5f', margin: '0 0 16px' }}>
+                  {sections.length + 1}. Terms and Conditions
+                </h3>
+                {selectedClauses.map((clause, index) => (
+                  <div key={clause.id} style={{ marginBottom: 16 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 600, color: '#374151', margin: '0 0 6px' }}>
+                      {sections.length + 1}.{index + 1} {clause.title}
+                    </h4>
+                    <p style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>{clause.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div style={{ marginTop: 40, paddingTop: 20, borderTop: '2px solid #1e3a5f', textAlign: 'center' }}>
+              <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>
+                Generated by ATEMS - AI Tender Evaluation & Management System
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

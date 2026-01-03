@@ -13,6 +13,7 @@ import BidSubmission from './pages/bids/BidSubmission';
 import BidDetails from './pages/bids/BidDetails';
 import BidderProfile from './pages/bids/BidderProfile';
 import EvaluationPanel from './pages/evaluation/EvaluationPanel';
+import EvaluationList from './pages/evaluation/EvaluationList';
 import ComparativeStatement from './pages/evaluation/ComparativeStatement';
 import RFPGenerator from './pages/rfp/RFPGenerator';
 import ReportsDashboard from './pages/reports/ReportsDashboard';
@@ -28,21 +29,11 @@ import Toast from './components/ui/Toast';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },
 });
-
-// Placeholder pages for routes not yet implemented
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <h2 className="text-xl font-semibold text-gray-700">{title}</h2>
-      <p className="text-gray-500 mt-2">Coming soon...</p>
-    </div>
-  </div>
-);
 
 function App() {
   return (
@@ -64,7 +55,7 @@ function App() {
             <Route path="/bids" element={<MyBids />} />
             <Route path="/bids/profile" element={<BidderProfile />} />
             <Route path="/bids/:id" element={<BidDetails />} />
-            <Route path="/evaluation" element={<PlaceholderPage title="Evaluation" />} />
+            <Route path="/evaluation" element={<EvaluationList />} />
             <Route path="/evaluation/:id" element={<EvaluationPanel />} />
             <Route path="/evaluation/:id/comparative" element={<ComparativeStatement />} />
             <Route path="/rfp" element={<RFPGenerator />} />

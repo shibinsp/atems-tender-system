@@ -31,10 +31,9 @@ class Settings(BaseSettings):
     # CORS - Configure via environment for production
     CORS_ORIGINS: List[str] = [
         "http://localhost",
-        "http://localhost:80",
+        "http://localhost:3838",
         "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:8080"
+        "http://localhost:3000"
     ]
 
     # Security Settings

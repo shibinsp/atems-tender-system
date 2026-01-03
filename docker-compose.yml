@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: atems-backend
     ports:
-      - "8000:8000"
+      - "3399:8000"
     environment:
       - DATABASE_URL=sqlite:///./atems.db
       - SECRET_KEY=atems_docker_secret_key_change_in_production_2026
@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile
     container_name: atems-frontend
     ports:
-      - "80:80"
+      - "3838:80"
     depends_on:
       backend:
         condition: service_healthy
