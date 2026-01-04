@@ -24,6 +24,9 @@ jobs:
           script: |
             cd ${{ secrets.PROJECT_PATH }}
 
+            echo "🔧 Ensuring HTTPS remote URL..."
+            git remote set-url origin https://github.com/shibinsp/atems-tender-system.git
+
             echo "📥 Pulling latest code from GitHub..."
             git pull origin main
 
