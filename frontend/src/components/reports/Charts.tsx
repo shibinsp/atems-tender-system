@@ -44,10 +44,15 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   children,
   height = 300
 }) => (
-  <div className="bg-white rounded-lg shadow-govt p-5">
-    <div className="mb-4">
-      <h3 className="font-semibold text-gray-900">{title}</h3>
-      {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+  <div style={{
+    backgroundColor: 'white',
+    borderRadius: 8,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+    padding: 20
+  }}>
+    <div style={{ marginBottom: 16 }}>
+      <h3 style={{ fontWeight: 600, color: '#111827', margin: 0, fontSize: 16 }}>{title}</h3>
+      {subtitle && <p style={{ fontSize: 14, color: '#6b7280', margin: '4px 0 0' }}>{subtitle}</p>}
     </div>
     <div style={{ height }}>{children}</div>
   </div>
@@ -303,20 +308,26 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   size = 'md'
 }) => {
   const percentage = Math.min((value / max) * 100, 100);
-  const heights = { sm: 'h-2', md: 'h-3', lg: 'h-4' };
+  const heights = { sm: 8, md: 12, lg: 16 };
+  const barHeight = heights[size];
 
   return (
-    <div className="w-full">
+    <div style={{ width: '100%' }}>
       {(label || showPercentage) && (
-        <div className="flex justify-between text-sm mb-1">
-          {label && <span className="text-gray-700">{label}</span>}
-          {showPercentage && <span className="text-gray-500">{percentage.toFixed(1)}%</span>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 4 }}>
+          {label && <span style={{ color: '#374151' }}>{label}</span>}
+          {showPercentage && <span style={{ color: '#6b7280' }}>{percentage.toFixed(1)}%</span>}
         </div>
       )}
-      <div className={`w-full bg-gray-200 rounded-full ${heights[size]}`}>
+      <div style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: 9999, height: barHeight }}>
         <div
-          className={`${heights[size]} rounded-full transition-all duration-500`}
-          style={{ width: `${percentage}%`, backgroundColor: color }}
+          style={{
+            height: barHeight,
+            borderRadius: 9999,
+            transition: 'all 0.5s',
+            width: `${percentage}%`,
+            backgroundColor: color
+          }}
         />
       </div>
     </div>
@@ -342,14 +353,19 @@ export const DataTable: React.FC<DataTableProps> = ({
   data,
   emptyMessage = 'No data available'
 }) => (
-  <div className="overflow-x-auto">
-    <table className="w-full text-sm">
+  <div style={{ overflowX: 'auto' }}>
+    <table style={{ width: '100%', fontSize: 14, borderCollapse: 'collapse' }}>
       <thead>
-        <tr className="border-b-2 border-gray-200">
+        <tr style={{ borderBottom: '2px solid #e5e7eb' }}>
           {columns.map(col => (
             <th
               key={col.key}
-              className={`py-3 px-4 font-semibold text-gray-700 text-${col.align || 'left'}`}
+              style={{
+                padding: '12px 16px',
+                fontWeight: 600,
+                color: '#374151',
+                textAlign: col.align || 'left'
+              }}
             >
               {col.header}
             </th>
@@ -359,17 +375,25 @@ export const DataTable: React.FC<DataTableProps> = ({
       <tbody>
         {data.length === 0 ? (
           <tr>
-            <td colSpan={columns.length} className="py-8 text-center text-gray-500">
+            <td colSpan={columns.length} style={{ padding: 32, textAlign: 'center', color: '#6b7280' }}>
               {emptyMessage}
             </td>
           </tr>
         ) : (
           data.map((row, index) => (
-            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+            <tr
+              key={index}
+              style={{ borderBottom: '1px solid #f3f4f6' }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f9fafb'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
               {columns.map(col => (
                 <td
                   key={col.key}
-                  className={`py-3 px-4 text-${col.align || 'left'}`}
+                  style={{
+                    padding: '12px 16px',
+                    textAlign: col.align || 'left'
+                  }}
                 >
                   {col.render ? col.render(row[col.key], row) : row[col.key]}
                 </td>

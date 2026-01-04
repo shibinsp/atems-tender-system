@@ -73,35 +73,77 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
     });
   };
 
+  const selectStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '8px 12px',
+    border: '1px solid #d1d5db',
+    borderRadius: 6,
+    fontSize: 14,
+    outline: 'none',
+    backgroundColor: 'white'
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-govt p-4 mb-6">
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: 8,
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+      padding: 16,
+      marginBottom: 24
+    }}>
       {/* Quick Actions Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              isExpanded || hasActiveFilters
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 12px',
+              borderRadius: 6,
+              fontSize: 14,
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: isExpanded || hasActiveFilters ? '#1e3a5f' : '#f3f4f6',
+              color: isExpanded || hasActiveFilters ? 'white' : '#374151',
+              transition: 'all 0.15s'
+            }}
           >
-            <Filter className="w-4 h-4" />
+            <Filter size={16} />
             Filters
             {hasActiveFilters && (
-              <span className="bg-white text-primary text-xs px-1.5 py-0.5 rounded-full">
+              <span style={{
+                backgroundColor: 'white',
+                color: '#1e3a5f',
+                fontSize: 12,
+                padding: '2px 6px',
+                borderRadius: 9999
+              }}>
                 {Object.values(filters).filter(v => v !== undefined && v !== '').length}
               </span>
             )}
           </button>
 
           {/* Quick Date Presets */}
-          <div className="hidden sm:flex items-center gap-1 border-l pl-2 ml-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, borderLeft: '1px solid #e5e7eb', paddingLeft: 8, marginLeft: 8 }}>
             {['week', 'month', 'quarter', 'year'].map(preset => (
               <button
                 key={preset}
                 onClick={() => setDatePreset(preset)}
-                className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded capitalize"
+                style={{
+                  padding: '4px 8px',
+                  fontSize: 12,
+                  color: '#6b7280',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
                 {preset === 'week' ? 'Last 7 days' : `Last ${preset}`}
               </button>
@@ -109,13 +151,13 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Button
             variant="outline"
             size="sm"
             onClick={onApply}
             loading={loading}
-            icon={<RefreshCw className="w-4 h-4" />}
+            icon={<RefreshCw size={16} />}
           >
             Refresh
           </Button>
@@ -125,7 +167,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onExport('pdf')}
-                icon={<Download className="w-4 h-4" />}
+                icon={<Download size={16} />}
               >
                 PDF
               </Button>
@@ -133,7 +175,7 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onExport('excel')}
-                icon={<Download className="w-4 h-4" />}
+                icon={<Download size={16} />}
               >
                 Excel
               </Button>
@@ -144,12 +186,12 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
 
       {/* Expanded Filters */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             {/* Date Range */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                <Calendar className="w-4 h-4 inline mr-1" />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
+                <Calendar size={16} />
                 From Date
               </label>
               <Input
@@ -159,8 +201,8 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                <Calendar className="w-4 h-4 inline mr-1" />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
+                <Calendar size={16} />
                 To Date
               </label>
               <Input
@@ -173,20 +215,23 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             {/* Department */}
             {showDepartment && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
                   Department
                 </label>
                 <select
                   value={filters.department_id || ''}
                   onChange={(e) => handleChange('department_id', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                  style={selectStyle}
                 >
                   <option value="">All Departments</option>
-                  <option value="1">IT Department</option>
-                  <option value="2">Public Works</option>
-                  <option value="3">Health Services</option>
-                  <option value="4">Education</option>
-                  <option value="5">Transport</option>
+                  <option value="1">Ministry of Electronics & IT</option>
+                  <option value="2">Ministry of Health</option>
+                  <option value="3">Ministry of Road Transport</option>
+                  <option value="4">Ministry of Defence</option>
+                  <option value="5">Ministry of Finance</option>
+                  <option value="6">Ministry of Education</option>
+                  <option value="7">Public Works Department</option>
+                  <option value="8">Municipal Corporation</option>
                 </select>
               </div>
             )}
@@ -194,20 +239,23 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             {/* Category */}
             {showCategory && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
                   Category
                 </label>
                 <select
                   value={filters.category_id || ''}
                   onChange={(e) => handleChange('category_id', e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                  style={selectStyle}
                 >
                   <option value="">All Categories</option>
-                  <option value="1">Construction</option>
-                  <option value="2">IT Services</option>
-                  <option value="3">Medical Supplies</option>
-                  <option value="4">Furniture</option>
-                  <option value="5">Vehicles</option>
+                  <option value="1">IT Hardware & Equipment</option>
+                  <option value="2">Software Development</option>
+                  <option value="3">Civil Construction</option>
+                  <option value="4">Medical Equipment</option>
+                  <option value="5">Office Supplies</option>
+                  <option value="6">Vehicles & Transport</option>
+                  <option value="7">Electrical Works</option>
+                  <option value="8">Consulting Services</option>
                 </select>
               </div>
             )}
@@ -215,13 +263,13 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             {/* Status */}
             {showStatus && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
                   Status
                 </label>
                 <select
                   value={filters.status || ''}
                   onChange={(e) => handleChange('status', e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                  style={selectStyle}
                 >
                   <option value="">All Statuses</option>
                   <option value="Draft">Draft</option>
@@ -237,32 +285,32 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
             {/* Tender Type */}
             {showTenderType && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: '#374151', marginBottom: 4 }}>
                   Tender Type
                 </label>
                 <select
                   value={filters.tender_type || ''}
                   onChange={(e) => handleChange('tender_type', e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                  style={selectStyle}
                 >
                   <option value="">All Types</option>
-                  <option value="Open">Open</option>
-                  <option value="Limited">Limited</option>
+                  <option value="Open Tender">Open Tender</option>
+                  <option value="Limited Tender">Limited Tender</option>
                   <option value="Single Source">Single Source</option>
-                  <option value="Two Stage">Two Stage</option>
+                  <option value="Two-Stage">Two Stage</option>
                 </select>
               </div>
             )}
           </div>
 
           {/* Filter Actions */}
-          <div className="flex items-center justify-end gap-2 mt-4">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onReset}
-                icon={<X className="w-4 h-4" />}
+                icon={<X size={16} />}
               >
                 Clear Filters
               </Button>
