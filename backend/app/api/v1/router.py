@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     auth, tenders, bids, evaluation, dashboard, admin, ai, exports, contracts,
-    analytics, vendors, security, communications, integrations
+    analytics, vendors, security, communications, integrations, reports
 )
 
 api_router = APIRouter()
@@ -16,6 +16,7 @@ api_router.include_router(admin.router)
 api_router.include_router(ai.router)
 api_router.include_router(exports.router)
 api_router.include_router(contracts.router)
+api_router.include_router(reports.router)
 
 # New feature endpoints
 api_router.include_router(analytics.router)

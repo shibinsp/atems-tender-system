@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, case
 from typing import List, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel
@@ -130,7 +130,7 @@ async def get_vendor_participation(
         Bidder.id,
         Bidder.company_name,
         func.count(Bid.id).label('total_bids'),
-        func.sum(func.case((Bid.status == BidStatus.AWARDED, 1), else_=0)).label('won_bids')
+        func.sum(case((Bid.status == BidStatus.AWARDED, 1), else_=0)).label('won_bids')
     ).join(Bid).group_by(Bidder.id).order_by(func.count(Bid.id).desc()).limit(10).all()
     
     return {
@@ -184,7 +184,7 @@ async def get_department_performance(
     dept_stats = db.query(
         Department.name,
         func.count(Tender.id).label('total_tenders'),
-        func.sum(func.case((Tender.status == TenderStatus.AWARDED, 1), else_=0)).label('awarded'),
+        func.sum(case((Tender.status == TenderStatus.AWARDED, 1), else_=0)).label('awarded'),
         func.sum(Tender.estimated_value).label('total_value')
     ).join(Tender, Tender.department_id == Department.id).group_by(Department.id).all()
     
