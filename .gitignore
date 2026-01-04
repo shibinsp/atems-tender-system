@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+
+# Local environment & secrets
+.env
+.env.*
+backend/.env
+
+# Databases & backups
+*.db
+backups/
+backend/atems.db
+backend/atems_backup.db
+
+# Uploads / generated files
+uploads/
+backend/uploads/
+
+# Frontend
+node_modules/
+dist/
+dist-ssr/
+
+# Logs
+*.log
+logs/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

@@ -1,4 +1,20 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: atems-db
+    environment:
+      POSTGRES_DB: atems
+      POSTGRES_USER: atems
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-atems_secure_pwd_2026}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atems -d atems"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -7,15 +23,18 @@ services:
     ports:
       - "3399:8000"
     environment:
-      - DATABASE_URL=sqlite:///./atems.db
-      - SECRET_KEY=atems_docker_secret_key_change_in_production_2026
+      - DATABASE_URL=postgresql://atems:${DB_PASSWORD:-atems_secure_pwd_2026}@db:5432/atems
+      - SECRET_KEY=${SECRET_KEY:-atems_production_secret_key_change_this_2026}
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - REFRESH_TOKEN_EXPIRE_DAYS=7
       - DEBUG=False
       - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - CORS_ORIGINS=["http://localhost:3838","http://185.215.166.90:3838"]
     volumes:
       - backend_uploads:/app/uploads
-      - backend_db:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -37,5 +56,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   backend_uploads:
-  backend_db:

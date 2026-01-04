@@ -16,11 +16,7 @@ from app.schemas.bid import (
     BidderCreate, BidderUpdate, BidderResponse
 )
 from app.config import settings
-
-
-def utc_now():
-    """Return current UTC time as timezone-aware datetime"""
-    return datetime.now(timezone.utc)
+from app.utils.helpers import utc_now, is_past, make_aware
 
 
 router = APIRouter(prefix="/bids", tags=["Bids"])
@@ -169,12 +165,12 @@ async def create_bid(
             detail="Tender is not accepting bids"
         )
 
-    # Check submission deadline (using timezone-aware comparison)
-    if tender.submission_deadline and utc_now() > tender.submission_deadline:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Submission deadline has passed"
-        )
+    # Check submission deadline
+    if tender.submission_deadline and is_past(tender.submission_deadline):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Submission deadline has passed"
+            )
 
     # Get bidder profile
     bidder = db.query(Bidder).filter(Bidder.user_id == current_user.id).first()
@@ -301,9 +297,9 @@ async def submit_bid(
             detail="Bid has already been submitted"
         )
 
-    # Check tender deadline (using timezone-aware comparison)
+    # Check tender deadline
     tender = bid.tender
-    if tender.submission_deadline and utc_now() > tender.submission_deadline:
+    if tender.submission_deadline and is_past(tender.submission_deadline):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Submission deadline has passed"
@@ -357,9 +353,9 @@ async def withdraw_bid(
             detail="Not authorized to withdraw this bid"
         )
 
-    # Check tender deadline (using timezone-aware comparison)
+    # Check tender deadline
     tender = bid.tender
-    if tender.submission_deadline and utc_now() > tender.submission_deadline:
+    if tender.submission_deadline and is_past(tender.submission_deadline):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot withdraw after submission deadline"

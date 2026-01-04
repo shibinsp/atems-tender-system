@@ -23,6 +23,10 @@ import AuditTrailReport from './pages/reports/AuditTrailReport';
 import UserManagement from './pages/admin/UserManagement';
 import DepartmentManagement from './pages/admin/DepartmentManagement';
 import Settings from './pages/admin/Settings';
+import { ContractManagement } from './pages/contracts';
+import { AnalyticsDashboard } from './pages/analytics';
+import { SecuritySettings } from './pages/settings';
+import { TenderCalendar } from './pages/calendar';
 import Toast from './components/ui/Toast';
 
 // Create React Query client
@@ -58,6 +62,9 @@ function App() {
             <Route path="/evaluation" element={<EvaluationList />} />
             <Route path="/evaluation/:id" element={<EvaluationPanel />} />
             <Route path="/evaluation/:id/comparative" element={<ComparativeStatement />} />
+            <Route path="/contracts" element={<ContractManagement />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
+            <Route path="/calendar" element={<TenderCalendar />} />
             <Route path="/rfp" element={<RFPGenerator />} />
             <Route path="/reports" element={<ReportsDashboard />} />
             <Route path="/reports/tender-status" element={<TenderStatusReport />} />
@@ -66,6 +73,7 @@ function App() {
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/departments" element={<DepartmentManagement />} />
             <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/security" element={<SecuritySettings />} />
           </Route>
 
           {/* Redirect root to dashboard */}

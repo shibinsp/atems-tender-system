@@ -25,7 +25,7 @@ class BidderBase(BaseModel):
 
 
 class BidderCreate(BidderBase):
-    user_id: int
+    pass  # user_id is auto-filled from current user
 
 
 class BidderUpdate(BaseModel):

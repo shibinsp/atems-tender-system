@@ -5,11 +5,20 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from contextlib import asynccontextmanager
 import os
+import logging
+import time
 
 from app.api.v1.router import api_router
-from app.database import create_tables, engine, Base
+from app.database import create_tables, engine, Base, check_db_connection
 from app.config import settings
 from app.models import *  # Import all models to register them
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO if not settings.DEBUG else logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("atems")
 
 # Rate limiting imports
 try:
@@ -19,7 +28,7 @@ try:
     RATE_LIMITING_AVAILABLE = True
 except ImportError:
     RATE_LIMITING_AVAILABLE = False
-    print("Warning: slowapi not installed. Rate limiting disabled.")
+    logger.warning("slowapi not installed. Rate limiting disabled.")
 
 
 # Security Headers Middleware
@@ -55,6 +64,25 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "geolocation=(), microphone=(), camera=()"
         )
 
+        # API Version header
+        response.headers["X-API-Version"] = settings.APP_VERSION
+
+        return response
+
+
+# Request logging middleware
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """Log all API requests"""
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        response = await call_next(request)
+        
+        duration = time.time() - start_time
+        logger.info(
+            f"{request.method} {request.url.path} - {response.status_code} - {duration:.3f}s"
+        )
+        
         return response
 
 
@@ -69,20 +97,37 @@ else:
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    print("Starting ATEMS API...")
-    create_tables()
-    print("Database tables created/verified")
+    logger.info(f"Starting {settings.APP_NAME} API v{settings.APP_VERSION}...")
+    
+    # Check database connection
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        logger.info("Waiting for database connection...")
+        import time
+        for i in range(30):
+            try:
+                create_tables()
+                logger.info("Database connection established")
+                break
+            except Exception as e:
+                logger.warning(f"Database not ready, retrying... ({i+1}/30)")
+                time.sleep(2)
+        else:
+            logger.error("Could not connect to database after 30 attempts")
+    else:
+        create_tables()
+    
+    logger.info("Database tables created/verified")
 
     # Create upload directories
     os.makedirs(f"{settings.UPLOAD_DIR}/tenders", exist_ok=True)
     os.makedirs(f"{settings.UPLOAD_DIR}/bids", exist_ok=True)
     os.makedirs(f"{settings.UPLOAD_DIR}/documents", exist_ok=True)
-    print("Upload directories created")
+    logger.info("Upload directories created")
 
     yield
 
     # Shutdown
-    print("Shutting down ATEMS API...")
+    logger.info(f"Shutting down {settings.APP_NAME} API...")
 
 
 app = FastAPI(
@@ -90,7 +135,7 @@ app = FastAPI(
     description="Government-grade Tender Management with AI-powered Evaluation",
     version=settings.APP_VERSION,
     lifespan=lifespan,
-    docs_url="/docs" if settings.DEBUG else None,  # Disable docs in production
+    docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None
 )
 
@@ -99,7 +144,10 @@ if RATE_LIMITING_AVAILABLE and limiter:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Security Headers Middleware (should be first)
+# Request logging middleware (first to capture all requests)
+app.add_middleware(RequestLoggingMiddleware)
+
+# Security Headers Middleware
 app.add_middleware(SecurityHeadersMiddleware)
 
 # CORS Configuration
@@ -126,7 +174,7 @@ async def root():
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "description": "AI-Based Tender Evaluation & Management System",
-        "docs": "/docs",
+        "docs": "/docs" if settings.DEBUG else "Disabled in production",
         "health": "/health"
     }
 
@@ -134,10 +182,21 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    db_status = "healthy"
+    try:
+        from sqlalchemy import text
+        from app.database import SessionLocal
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+    
     return {
-        "status": "healthy",
+        "status": "healthy" if db_status == "healthy" else "degraded",
         "service": "ATEMS API",
-        "version": settings.APP_VERSION
+        "version": settings.APP_VERSION,
+        "database": db_status
     }
 
 

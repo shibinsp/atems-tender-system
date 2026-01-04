@@ -497,6 +497,75 @@ Be thorough but fair. Respond ONLY with valid JSON."""
                 "summary": "AI risk analysis failed"
             }
 
+    async def calculate_vendor_rating(
+        self,
+        vendor_data: Dict[str, Any],
+        past_performance: List[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate vendor rating based on company profile and past performance
+        """
+        past_perf_text = ""
+        if past_performance:
+            past_perf_text = f"\nPAST PERFORMANCE:\n{json.dumps(past_performance, indent=2, default=str)}"
+
+        prompt = f"""Evaluate this vendor and provide a comprehensive rating for government procurement.
+
+VENDOR PROFILE:
+{json.dumps(vendor_data, indent=2, default=str)}
+{past_perf_text}
+
+Analyze the vendor and provide a rating as JSON:
+{{
+    "overall_rating": <1-5 stars>,
+    "rating_label": "Excellent/Good/Average/Below Average/Poor",
+    "confidence_score": <0-100>,
+    "category_ratings": {{
+        "financial_stability": <1-5>,
+        "technical_capability": <1-5>,
+        "experience": <1-5>,
+        "compliance": <1-5>,
+        "delivery_track_record": <1-5>
+    }},
+    "strengths": ["list of key strengths"],
+    "weaknesses": ["list of areas of concern"],
+    "recommended_contract_value": "suggested maximum contract value based on capability",
+    "suitable_tender_types": ["list of tender types this vendor is suitable for"],
+    "risk_tier": "Low Risk/Medium Risk/High Risk/Very High Risk",
+    "verification_needed": ["aspects that need verification"],
+    "summary": "brief overall assessment"
+}}
+
+Be objective and fair. Consider Indian government procurement standards. Respond ONLY with valid JSON."""
+
+        messages = [
+            {"role": "system", "content": "You are a vendor assessment specialist for government procurement. Rate vendors objectively based on their profile and capabilities."},
+            {"role": "user", "content": prompt}
+        ]
+
+        try:
+            response = await self._chat_completion(messages)
+            response = response.strip()
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.startswith("```"):
+                response = response[3:]
+            if response.endswith("```"):
+                response = response[:-3]
+            return json.loads(response.strip())
+        except Exception as e:
+            return {
+                "overall_rating": 0,
+                "rating_label": "Not Rated",
+                "error": str(e),
+                "confidence_score": 0,
+                "category_ratings": {},
+                "strengths": [],
+                "weaknesses": [],
+                "risk_tier": "Unknown",
+                "summary": "AI rating failed - manual assessment required"
+            }
+
 
 # Global AI service instance
 ai_service = MistralAI()

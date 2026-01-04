@@ -12,7 +12,11 @@ import {
   Building2,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileSignature,
+  PieChart,
+  Calendar,
+  Shield
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useUIStore } from '../../store/uiStore';
@@ -29,10 +33,14 @@ const menuItems: MenuItem[] = [
   { icon: FileText, label: 'Tenders', path: '/tenders', roles: ['Admin', 'Tender Officer', 'Evaluator', 'Viewer'] },
   { icon: Send, label: 'My Bids', path: '/bids', roles: ['Bidder'] },
   { icon: ClipboardCheck, label: 'Evaluation', path: '/evaluation', roles: ['Admin', 'Tender Officer', 'Evaluator'] },
+  { icon: FileSignature, label: 'Contracts', path: '/contracts', roles: ['Admin', 'Tender Officer'] },
+  { icon: Calendar, label: 'Calendar', path: '/calendar', roles: ['Admin', 'Tender Officer', 'Evaluator'] },
+  { icon: PieChart, label: 'Analytics', path: '/analytics', roles: ['Admin', 'Tender Officer'] },
   { icon: FileSearch, label: 'RFP Generator', path: '/rfp', roles: ['Admin', 'Tender Officer'] },
   { icon: BarChart3, label: 'Reports', path: '/reports', roles: ['Admin', 'Tender Officer'] },
   { icon: Users, label: 'Users', path: '/admin/users', roles: ['Admin'] },
   { icon: Building2, label: 'Departments', path: '/admin/departments', roles: ['Admin'] },
+  { icon: Shield, label: 'Security', path: '/security' },
   { icon: Settings, label: 'Settings', path: '/admin/settings', roles: ['Admin'] },
 ];
 

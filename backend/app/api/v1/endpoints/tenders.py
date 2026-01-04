@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -8,12 +9,14 @@ import shutil
 from app.core.dependencies import get_db, get_current_user, require_tender_officer
 from app.models.user import User
 from app.models.tender import Tender, TenderDocument, TenderEligibility, EvaluationCriteria, TenderStatus
+from app.models.bid import BidDocument
 from app.schemas.tender import (
     TenderCreate, TenderUpdate, TenderResponse, TenderListResponse,
     TenderDocumentResponse, TenderEligibilityCreate, TenderEligibilityResponse,
     EvaluationCriteriaCreate, EvaluationCriteriaResponse
 )
 from app.config import settings
+from app.utils.helpers import sanitize_filename
 
 router = APIRouter(prefix="/tenders", tags=["Tenders"])
 
@@ -435,3 +438,73 @@ async def add_evaluation_criteria(
     db.commit()
     db.refresh(criteria)
     return criteria
+
+
+# Document Download
+@router.get("/documents/{doc_id}/download")
+async def download_tender_document(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Download a tender document"""
+    document = db.query(TenderDocument).filter(TenderDocument.id == doc_id).first()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+    
+    # Check if file exists
+    if not os.path.exists(document.file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found on server"
+        )
+    
+    return FileResponse(
+        path=document.file_path,
+        filename=sanitize_filename(document.file_name),
+        media_type="application/pdf"
+    )
+
+
+@router.get("/bid-documents/{doc_id}/download")
+async def download_bid_document(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Download a bid document (authorized users only)"""
+    document = db.query(BidDocument).filter(BidDocument.id == doc_id).first()
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+    
+    # Check authorization - bid owner or staff can download
+    from app.models.bid import Bidder
+    from app.models.user import UserRole
+    
+    bidder = db.query(Bidder).filter(Bidder.user_id == current_user.id).first()
+    is_owner = bidder and document.bid.bidder_id == bidder.id
+    is_staff = current_user.role in [UserRole.ADMIN, UserRole.TENDER_OFFICER, UserRole.EVALUATOR]
+    
+    if not (is_owner or is_staff):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to download this document"
+        )
+    
+    if not os.path.exists(document.file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found on server"
+        )
+    
+    return FileResponse(
+        path=document.file_path,
+        filename=sanitize_filename(document.file_name),
+        media_type="application/pdf"
+    )

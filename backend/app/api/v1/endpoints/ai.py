@@ -189,6 +189,33 @@ async def analyze_bid_risks(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class VendorRatingRequest(BaseModel):
+    vendor_data: Dict[str, Any]
+    past_performance: Optional[List[Dict[str, Any]]] = None
+
+
+@router.post("/vendor-rating", response_model=AIResponse)
+async def calculate_vendor_rating(
+    request: VendorRatingRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Calculate AI-powered vendor rating based on profile and past performance
+    """
+    try:
+        result = await ai_service.calculate_vendor_rating(
+            vendor_data=request.vendor_data,
+            past_performance=request.past_performance
+        )
+        return AIResponse(
+            success="error" not in result,
+            data=result,
+            error=result.get("error")
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/health")
 async def ai_health_check():
     """
@@ -208,6 +235,7 @@ async def ai_health_check():
             "document_extraction",
             "comparative_analysis",
             "rfp_generation",
-            "risk_analysis"
+            "risk_analysis",
+            "vendor_rating"
         ] if has_api_key else []
     }
