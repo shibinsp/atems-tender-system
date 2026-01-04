@@ -2,7 +2,7 @@
 
 A comprehensive, enterprise-grade government tender management system with AI-powered bid evaluation, complete lifecycle management, and advanced analytics.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.0.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![React](https://img.shields.io/badge/react-19-blue)
