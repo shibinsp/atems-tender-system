@@ -2,9 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, PiggyBank, TrendingDown, Building2, Tag } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent } from '../../components/ui/Card';
+import PageHeader from '../../components/ui/PageHeader';
 import Loading from '../../components/ui/Loading';
-import Breadcrumb from '../../components/layout/Breadcrumb';
 import {
   StatsCard,
   ReportFilters,
@@ -90,8 +90,8 @@ const SavingsReportPage: React.FC = () => {
       header: 'Savings',
       align: 'right' as const,
       render: (value: number, row: any) => (
-        <span className="text-green-600 font-medium">
-          {formatCurrency(value)} ({((value / row.estimated) * 100).toFixed(1)}%)
+        <span style={{ color: '#16a34a', fontWeight: 500 }}>
+          {formatCurrency(value)} ({row.estimated > 0 ? ((value / row.estimated) * 100).toFixed(1) : 0}%)
         </span>
       )
     }
@@ -116,44 +116,27 @@ const SavingsReportPage: React.FC = () => {
       header: 'Savings',
       align: 'right' as const,
       render: (value: number, row: any) => (
-        <span className="text-green-600 font-medium">
-          {formatCurrency(value)} ({((value / row.estimated) * 100).toFixed(1)}%)
+        <span style={{ color: '#16a34a', fontWeight: 500 }}>
+          {formatCurrency(value)} ({row.estimated > 0 ? ((value / row.estimated) * 100).toFixed(1) : 0}%)
         </span>
       )
     }
   ];
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          { label: 'Dashboard', path: '/dashboard' },
-          { label: 'Reports', path: '/reports' },
-          { label: 'Savings Report' }
-        ]}
-      />
-
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-govt p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <PiggyBank className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Savings Report</h1>
-              <p className="text-gray-600">
-                Analysis of cost savings comparing estimated vs awarded contract values
-              </p>
-            </div>
-          </div>
+    <div>
+      <PageHeader
+        title="Savings Report"
+        subtitle="Analysis of cost savings comparing estimated vs awarded contract values"
+        icon={<PiggyBank size={24} color="#16a34a" />}
+        actions={
           <Link to="/reports">
-            <Button variant="outline" icon={<ArrowLeft className="w-4 h-4" />}>
+            <Button variant="outline" icon={<ArrowLeft size={16} />}>
               Back to Reports
             </Button>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filters */}
       <ReportFilters
@@ -168,23 +151,23 @@ const SavingsReportPage: React.FC = () => {
       {report && (
         <>
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
             <StatsCard
               title="Total Estimated"
               value={formatCurrency(report.total_estimated_value)}
-              icon={<Tag className="w-6 h-6" />}
+              icon={<Tag size={24} />}
               color="info"
             />
             <StatsCard
               title="Total Awarded"
               value={formatCurrency(report.total_awarded_value)}
-              icon={<TrendingDown className="w-6 h-6" />}
+              icon={<TrendingDown size={24} />}
               color="warning"
             />
             <StatsCard
               title="Total Savings"
               value={formatCurrency(report.total_savings)}
-              icon={<PiggyBank className="w-6 h-6" />}
+              icon={<PiggyBank size={24} />}
               color="success"
             />
             <StatsCard
@@ -196,28 +179,36 @@ const SavingsReportPage: React.FC = () => {
           </div>
 
           {/* Overall Savings Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Overall Savings Achievement</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Estimated Value</span>
-                  <span className="font-medium">{formatCurrency(report.total_estimated_value)}</span>
+          <Card style={{ marginBottom: 24 }}>
+            <CardContent style={{ padding: 0 }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Overall Savings Achievement</h3>
+              </div>
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 14, marginBottom: 8 }}>
+                  <span style={{ color: '#6b7280' }}>Estimated Value</span>
+                  <span style={{ fontWeight: 500 }}>{formatCurrency(report.total_estimated_value)}</span>
                 </div>
-                <div className="relative pt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-6">
+                <div style={{ position: 'relative', paddingTop: 16 }}>
+                  <div style={{ width: '100%', backgroundColor: '#e5e7eb', borderRadius: 9999, height: 24 }}>
                     <div
-                      className="h-6 rounded-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-end pr-2"
-                      style={{ width: `${100 - report.savings_percentage}%` }}
+                      style={{
+                        height: 24,
+                        borderRadius: 9999,
+                        background: 'linear-gradient(to right, #4ade80, #16a34a)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        paddingRight: 8,
+                        width: `${100 - report.savings_percentage}%`
+                      }}
                     >
-                      <span className="text-xs text-white font-medium">
+                      <span style={{ fontSize: 12, color: 'white', fontWeight: 500 }}>
                         {formatCurrency(report.total_awarded_value)}
                       </span>
                     </div>
                   </div>
-                  <div className="absolute right-0 top-0 text-sm text-green-600 font-medium">
+                  <div style={{ position: 'absolute', right: 0, top: 0, fontSize: 14, color: '#16a34a', fontWeight: 500 }}>
                     Saved: {formatCurrency(report.total_savings)}
                   </div>
                 </div>
@@ -226,83 +217,87 @@ const SavingsReportPage: React.FC = () => {
           </Card>
 
           {/* Monthly Trend */}
-          <ChartContainer
-            title="Monthly Savings Trend"
-            subtitle="Estimated vs Awarded values over time"
-            height={350}
-          >
-            <SimpleAreaChart
-              data={report.by_month.map(m => ({
-                name: m.month,
-                estimated: m.estimated,
-                awarded: m.awarded,
-                savings: m.savings
-              }))}
-              areas={[
-                { dataKey: 'estimated', name: 'Estimated', color: '#3182ce' },
-                { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
-              ]}
-            />
-          </ChartContainer>
+          <div style={{ marginBottom: 24 }}>
+            <ChartContainer
+              title="Monthly Savings Trend"
+              subtitle="Estimated vs Awarded values over time"
+              height={350}
+            >
+              <SimpleAreaChart
+                data={report.by_month.map(m => ({
+                  name: m.month,
+                  estimated: m.estimated,
+                  awarded: m.awarded,
+                  savings: m.savings
+                }))}
+                areas={[
+                  { dataKey: 'estimated', name: 'Estimated', color: '#3182ce' },
+                  { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
+                ]}
+              />
+            </ChartContainer>
+          </div>
 
           {/* Department & Category Tables */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24, marginBottom: 24 }}>
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5" />
-                  Savings by Department
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={departmentColumns} data={report.by_department} />
+              <CardContent style={{ padding: 0 }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Building2 size={20} color="#6b7280" />
+                  <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Savings by Department</h3>
+                </div>
+                <div style={{ padding: 16 }}>
+                  <DataTable columns={departmentColumns} data={report.by_department} />
+                </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="w-5 h-5" />
-                  Savings by Category
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={categoryColumns} data={report.by_category} />
+              <CardContent style={{ padding: 0 }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Tag size={20} color="#6b7280" />
+                  <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Savings by Category</h3>
+                </div>
+                <div style={{ padding: 16 }}>
+                  <DataTable columns={categoryColumns} data={report.by_category} />
+                </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Department Comparison Chart */}
-          <ChartContainer
-            title="Department-wise Comparison"
-            subtitle="Estimated vs Awarded by department"
-            height={350}
-          >
-            <GroupedBarChart
-              data={report.by_department.map(d => ({
-                name: d.department,
-                estimated: d.estimated,
-                awarded: d.awarded
-              }))}
-              bars={[
-                { dataKey: 'estimated', name: 'Estimated', color: '#3182ce' },
-                { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
-              ]}
-            />
-          </ChartContainer>
+          <div style={{ marginBottom: 24 }}>
+            <ChartContainer
+              title="Department-wise Comparison"
+              subtitle="Estimated vs Awarded by department"
+              height={350}
+            >
+              <GroupedBarChart
+                data={report.by_department.map(d => ({
+                  name: d.department,
+                  estimated: d.estimated,
+                  awarded: d.awarded
+                }))}
+                bars={[
+                  { dataKey: 'estimated', name: 'Estimated', color: '#3182ce' },
+                  { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
+                ]}
+              />
+            </ChartContainer>
+          </div>
 
           {/* Savings by Department Progress Bars */}
           <Card>
-            <CardHeader>
-              <CardTitle>Department Savings Rates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent style={{ padding: 0 }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Department Savings Rates</h3>
+              </div>
+              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {report.by_department.map(dept => (
                   <ProgressBar
                     key={dept.department}
                     label={dept.department}
-                    value={(dept.savings / dept.estimated) * 100}
+                    value={dept.estimated > 0 ? (dept.savings / dept.estimated) * 100 : 0}
                     color="#38a169"
                   />
                 ))}

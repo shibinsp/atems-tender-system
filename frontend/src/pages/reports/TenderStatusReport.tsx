@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText, Clock, Building2 } from 'lucide-react';
+import { ArrowLeft, FileText, Clock, Building2, CheckCircle } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent } from '../../components/ui/Card';
+import PageHeader from '../../components/ui/PageHeader';
 import Loading from '../../components/ui/Loading';
-import Breadcrumb from '../../components/layout/Breadcrumb';
 import {
   StatsCard,
   ReportFilters,
@@ -53,9 +53,6 @@ const TenderStatusReportPage: React.FC = () => {
         title: 'Exporting',
         message: `Generating ${format.toUpperCase()} report...`
       });
-      // In a real implementation:
-      // const blob = await reportService.exportReport('tender_status', format, filters);
-      // downloadBlob(blob, `tender-status-report.${format}`);
       addToast({
         type: 'success',
         title: 'Success',
@@ -97,36 +94,19 @@ const TenderStatusReportPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb
-        items={[
-          { label: 'Dashboard', path: '/dashboard' },
-          { label: 'Reports', path: '/reports' },
-          { label: 'Tender Status Report' }
-        ]}
-      />
-
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-govt p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FileText className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Tender Status Report</h1>
-              <p className="text-gray-600">
-                Comprehensive overview of tender distribution by status, type, and department
-              </p>
-            </div>
-          </div>
+    <div>
+      <PageHeader
+        title="Tender Status Report"
+        subtitle="Comprehensive overview of tender distribution by status, type, and department"
+        icon={<FileText size={24} color="#1e3a5f" />}
+        actions={
           <Link to="/reports">
-            <Button variant="outline" icon={<ArrowLeft className="w-4 h-4" />}>
+            <Button variant="outline" icon={<ArrowLeft size={16} />}>
               Back to Reports
             </Button>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filters */}
       <ReportFilters
@@ -143,35 +123,36 @@ const TenderStatusReportPage: React.FC = () => {
       {report && (
         <>
           {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
             <StatsCard
               title="Total Tenders"
               value={report.total_tenders}
-              icon={<FileText className="w-6 h-6" />}
+              icon={<FileText size={24} />}
               color="primary"
             />
             <StatsCard
               title="Avg Cycle Time"
               value={`${report.avg_cycle_time_days} days`}
-              icon={<Clock className="w-6 h-6" />}
+              icon={<Clock size={24} />}
               color="info"
             />
             <StatsCard
               title="Departments"
               value={report.by_department.length}
-              icon={<Building2 className="w-6 h-6" />}
+              icon={<Building2 size={24} />}
               color="warning"
             />
             <StatsCard
               title="Awarded"
               value={report.by_status.find(s => s.status === 'Awarded')?.count || 0}
               subtitle={`${report.by_status.find(s => s.status === 'Awarded')?.percentage.toFixed(1) || 0}% of total`}
+              icon={<CheckCircle size={24} />}
               color="success"
             />
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24, marginBottom: 24 }}>
             <ChartContainer title="Status Distribution" subtitle="Tenders by current status">
               <SimplePieChart
                 data={report.by_status.map(s => ({ name: s.status, value: s.count }))}
@@ -187,37 +168,43 @@ const TenderStatusReportPage: React.FC = () => {
           </div>
 
           {/* Timeline Chart */}
-          <ChartContainer title="Monthly Trend" subtitle="Tenders created vs awarded over time" height={350}>
-            <GroupedBarChart
-              data={report.timeline.map(t => ({
-                name: t.month,
-                created: t.created,
-                awarded: t.awarded
-              }))}
-              bars={[
-                { dataKey: 'created', name: 'Created', color: '#3182ce' },
-                { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
-              ]}
-            />
-          </ChartContainer>
+          <div style={{ marginBottom: 24 }}>
+            <ChartContainer title="Monthly Trend" subtitle="Tenders created vs awarded over time" height={350}>
+              <GroupedBarChart
+                data={report.timeline.map(t => ({
+                  name: t.month,
+                  created: t.created,
+                  awarded: t.awarded
+                }))}
+                bars={[
+                  { dataKey: 'created', name: 'Created', color: '#3182ce' },
+                  { dataKey: 'awarded', name: 'Awarded', color: '#38a169' }
+                ]}
+              />
+            </ChartContainer>
+          </div>
 
           {/* Tables Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24 }}>
             <Card>
-              <CardHeader>
-                <CardTitle>Status Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={statusColumns} data={report.by_status} />
+              <CardContent style={{ padding: 0 }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Status Breakdown</h3>
+                </div>
+                <div style={{ padding: 16 }}>
+                  <DataTable columns={statusColumns} data={report.by_status} />
+                </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Department-wise Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DataTable columns={departmentColumns} data={report.by_department} />
+              <CardContent style={{ padding: 0 }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Department-wise Distribution</h3>
+                </div>
+                <div style={{ padding: 16 }}>
+                  <DataTable columns={departmentColumns} data={report.by_department} />
+                </div>
               </CardContent>
             </Card>
           </div>
